@@ -1,4 +1,5 @@
 import subprocess
+from dataObjects import FontDetails
 
 
 def eliminateDuplicates(originalListOfLines):

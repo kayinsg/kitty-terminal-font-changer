@@ -1,7 +1,7 @@
 import subprocess
 import re as regex
-from dataObjects import FontFamilyTree, FontDetails, FontSelectDetails
-from subroutines import eliminateDuplicates, updateLocalFontDatabase
+from dataObjects import FontFamilyTree, FontDetails, FontSelect
+from subroutines import eliminateDuplicates, updateLocalFontDatabase, getFontDetails
 
 
 def getDetailsForFontSelector():
@@ -19,33 +19,11 @@ def getDetailsForFontSelector():
 
     return fontSelectorContainers
 
-
-def getFontAncestorWithShortestLengthDescendant(fontFamily):
-    fontsMetadata = list()
-
-    for descendant in fontFamily.descendants:
-
-        fontName = descendant
-        lengthOfFontName = len(fontName)
-
-        fontMetadata = (fontName, lengthOfFontName)
-        fontsMetadata.append(fontMetadata)
-
-    shortestWord = fontsMetadata[0][0]
-    smallest = fontsMetadata[0][1]
-
-    for word, length in fontsMetadata:
-        if length < smallest:
-            shortestWord = word
-
-    return FontSelectDetails(fontFamily.ancestor, shortestWord)
-
-
 class FontFamily:
     def __init__(self):
         customFontPaths = CustomFontAddress().get()
         primaryFontNames = FontName().getPrimaryFontNames(customFontPaths)
-        fontDetails = FontDelegate().getFontDetails(primaryFontNames)
+        fontDetails = getFontDetails(primaryFontNames)
         self.fontDetails = fontDetails
 
     def groupMembers(self):
@@ -69,6 +47,57 @@ class FontFamily:
 
             fontFamily.descendants = fontFamily.descendants[1::]
             yield (fontFamily)
+
+
+def getFontAncestorWithShortestLengthDescendant(fontFamily):
+    fontsMetadata = list()
+
+    for descendant in fontFamily.descendants:
+
+        fontName = descendant
+        lengthOfFontName = len(fontName)
+
+        fontMetadata = (fontName, lengthOfFontName)
+        fontsMetadata.append(fontMetadata)
+
+    shortestWord = fontsMetadata[0][0]
+    smallest = fontsMetadata[0][1]
+
+    for word, length in fontsMetadata:
+        if length < smallest:
+            shortestWord = word
+
+    return FontSelect(fontFamily.ancestor, shortestWord)
+
+def getFontDetails(fontNames):
+    cleanedListOfFonts = sanitizeFontNames(fontNames)
+    ancestors = getFontAncestorFromName(cleanedListOfFonts)
+    return FontDetails(ancestors, cleanedListOfFonts)
+
+
+def sanitizeFontNames(primaryFontNames):
+    alphabeticallyOrderedList = sorted(
+        primaryFontNames,
+        key=lambda x: x[0]
+    )
+    nonDuplicatedListOfFonts = eliminateDuplicates(
+        alphabeticallyOrderedList
+    )
+    return nonDuplicatedListOfFonts
+
+def getFontAncestorFromName(nonDuplicatedListOfFonts):
+    words = list()
+    for font in nonDuplicatedListOfFonts:
+        letters = list()
+        for currentCharacter in font[0::]:
+            characterIsNotACapitalLetter = currentCharacter.islower() is True
+            characterIsNotASpace = currentCharacter != " "
+            if characterIsNotASpace or characterIsNotACapitalLetter:
+                letters.append(currentCharacter)
+            else:
+                break
+        words.append(''.join(letters))
+    return eliminateDuplicates(words)
 
 
 class CustomFontAddress:
@@ -135,38 +164,6 @@ class FontName:
             else:
                 finalFontNames.append(fileMatch)
         return finalFontNames
-
-
-class FontDelegate:
-
-    def getFontDetails(self, fontNames):
-        cleanedListOfFonts = self.sanitizeFontNames(fontNames)
-        ancestors = self.getFontAncestorFromName(cleanedListOfFonts)
-        return FontDetails(ancestors, cleanedListOfFonts)
-
-    def sanitizeFontNames(self, primaryFontNames):
-        alphabeticallyOrderedList = sorted(
-            primaryFontNames,
-            key=lambda x: x[0]
-        )
-        nonDuplicatedListOfFonts = eliminateDuplicates(
-            alphabeticallyOrderedList
-        )
-        return nonDuplicatedListOfFonts
-
-    def getFontAncestorFromName(self, nonDuplicatedListOfFonts):
-        words = list()
-        for font in nonDuplicatedListOfFonts:
-            letters = list()
-            for currentCharacter in font[0::]:
-                characterIsNotACapitalLetter = currentCharacter.islower() is True
-                characterIsNotASpace = currentCharacter != " "
-                if characterIsNotASpace or characterIsNotACapitalLetter:
-                    letters.append(currentCharacter)
-                else:
-                    break
-            words.append(''.join(letters))
-        return eliminateDuplicates(words)
 
 
 getDetailsForFontSelector()

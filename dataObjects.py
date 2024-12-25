@@ -3,7 +3,7 @@ from typing import NamedTuple
 
 
 @dataclass
-class FontSelectDetails:
+class FontSelect:
     ancestor: str
     fontForClipboard: str
 
