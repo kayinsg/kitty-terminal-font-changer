@@ -1,7 +1,7 @@
 import subprocess
 import re as regex
 from dataObjects import FontFamilyTree, FontDetails, FontSelect
-from subroutines import eliminateDuplicates, updateLocalFontDatabase, getFontDetails
+from subroutines import eliminateDuplicates
 
 
 def getDetailsForFontSelector():
@@ -11,10 +11,6 @@ def getDetailsForFontSelector():
         fontContainerForUser = getFontAncestorWithShortestLengthDescendant(
             fontFamily
         )
-        print("")
-        print('[ SOURCE ]: ...')
-        print('[ INFO ] Font Select')
-        print(fontContainerForUser)
         fontSelectorContainers.append(fontContainerForUser)
 
     return fontSelectorContainers
