@@ -5,7 +5,7 @@ from typing import NamedTuple
 @dataclass
 class FontSelect:
     ancestor: str
-    fontForClipboard: str
+    externalInterfaceValue: str
 
 
 @dataclass
