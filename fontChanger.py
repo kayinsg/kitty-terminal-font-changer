@@ -5,18 +5,7 @@ from pathlib import Path
 from systemFontDataExtractor import getDetailsForFontSelector
 import re as regex
 
-
-workingDirectory = os.getcwd()
-temporaryFilePath = Path(workingDirectory).joinpath('temp')
-
-fonts = getDetailsForFontSelector()
-
-def fontPicker(fonts, temporaryFile):
-    # temporaryFile = Path(Path(workingDirectory).joinpath('temp')).as_posix()
-    with open(temporaryFile , 'w') as file:
-        for font in fonts:
-                file.writelines(f'{font.ancestor}\n')
-    
+def fontPicker(temporaryFile):
     fontMenu = subprocess.run(
         ['cat', temporaryFile],
         check=True,
@@ -33,39 +22,65 @@ def fontPicker(fonts, temporaryFile):
     os.remove(temporaryFile)
     return userFont
 
-userChosenFont = fontPicker(fonts, temporaryFilePath)
+
+def getTemporaryFilePath():
+    workingDirectory = os.getcwd()
+    temporaryFilePath = os.path.join(workingDirectory, 'temporaryFile')
+    return temporaryFilePath
+
+def writeFontsToTemporaryFile(fonts, temporaryFilePath):
+    with open(temporaryFilePath , 'w') as file:
+        for font in fonts:
+                file.writelines(f'{font.ancestor}\n')
 
 
-# fontSizeByUser = input("What should the size of the font be? ")
+def getKittyConfigPath():
+    home = os.path.expanduser('~')
+    kittyConfigPath = os.path.join (home, '.config', 'kitty', 'current_settings')
+    return kittyConfigPath
 
 
-home = os.path.expanduser('~')
-kittyConfigPath = os.path.join (home, '.config', 'kitty', 'current_settings')
+def getKittyConfigData(kittyConfigPath):
+    return Path(kittyConfigPath).read_text()
 
 
-kittyFontConfig = Path(kittyConfigPath).read_text()
+
+def changeFontFamily(kittyConfigData):
+    fontFamily = regex.compile(r'(font_family\s*)(\w+)')
+    familyMatch = fontFamily.search(kittyConfigData)
+    fontFamilyCategory = familyMatch.group(1)
+    fontName = familyMatch.group(2)
+    modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', kittyConfigData)
+    return modifiedConfig
 
 
-fontFamily = regex.compile(r'(font_family\s*)(\w+)')
-fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
+def changeFontSize(kittyConfigData):
+    fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
+    fontSizeMatch = fontSize.search(kittyConfigData)
+    fontSizeCategory = fontSizeMatch.group(1)
+    actualFontSize = fontSizeMatch.group(2)
+    modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{fontSizeByUser}', kittyConfigData)
+    return modifiedConfig
 
 
-# print("")
-# print('[ SOURCE ]: ...')
-# print('[ INFO ] Kitty Font Config')
-# print(kittyFontConfig)
+def applyChangesToKittyConfig(modifiedKittyData, kittyConfigPath):
+    with open(kittyConfigPath, "w") as config:
+        config.writelines(modifiedKittyData)
 
 
-familyMatch = fontFamily.search(kittyFontConfig)
-fontFamilyCategory = familyMatch.group(1)
-fontName = familyMatch.group(2)
-newString = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', kittyFontConfig)
+fonts = getDetailsForFontSelector()
+temporaryFilePath = getTemporaryFilePath()
+writeFontsToTemporaryFile(fonts, temporaryFilePath)
+
+kittyConfigPath = getKittyConfigPath()
+kittyConfigData = getKittyConfigData(kittyConfigPath)
+
+modifiedFontFamily = changeFontFamily(kittyConfigData)
+modifiedFontSize = changeFontSize(modifiedFontFamily)
+
+applyChangesToKittyConfig(modifiedFontSize, kittyConfigPath)
 
 
-fontSizeMatch = fontSize.search(newString)
-fontSizeCategory = fontSizeMatch.group(1)
-actualFontSize = fontSizeMatch.group(2)
-# newString2 = regex.sub(fontSize, f'{fontSizeCategory}{fontSizeByUser}', newString)
 
-
-# print(newString2)
+userChosenFont = fontPicker(temporaryFilePath)
+fontSizeByUser = input("What should the size of the font be? ")
