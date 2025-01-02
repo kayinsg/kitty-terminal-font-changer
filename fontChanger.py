@@ -83,18 +83,31 @@ class FontMenu:
         return userFont
 
 
-# FontChanger().change()
-runningKittyProcesses = subprocess.run(
-    ['pgrep kitty'],
-    check=True,
-    text=True,
-    shell=True,
-    capture_output=True
-).stdout.splitlines()
+class TerminalRestart:
 
-for process in runningKittyProcesses:
-    pid = int(process)
-    kill(pid, signal.SIGHUP)
+    def execute(self):
+        kittyProcesses = self.findKittyProcesses()
+        self.killKittyProcesses(kittyProcesses)
+        self.restartKittyTerminal()
 
-subprocess.run("kitty &", shell=True)
-sys.exit(1)
+    def findKittyProcesses(self):
+        runningKittyProcesses = subprocess.run(
+            ['pgrep kitty'],
+            check=True,
+            text=True,
+            shell=True,
+            capture_output=True
+        ).stdout.splitlines()
+        return runningKittyProcesses
+
+    def killKittyProcesses(self, runningKittyProcesses):
+        for process in runningKittyProcesses:
+            pid = int(process)
+            kill(pid, signal.SIGHUP)
+
+    def restartKittyTerminal(self):
+        subprocess.run("kitty &", shell=True)
+        sys.exit(1)
+
+FontChanger().change()
+TerminalRestart().execute()
