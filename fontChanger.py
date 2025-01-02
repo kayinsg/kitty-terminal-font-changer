@@ -1,22 +1,17 @@
 from dataObjects import FontSelect
 import subprocess
-import os
+from os import path, remove, getcwd, kill
 from pathlib import Path
 from systemFontDataExtractor import getDetailsForFontSelector
 import re as regex
+import signal
+import sys
 
 
 class FontChanger:
     def __init__(self):
-        self.kittyConfigPath = os.path.join(os.path.expanduser('~'), '.config', 'kitty', 'current_settings')
+        self.kittyConfigPath = path.join(path.expanduser('~'), '.config', 'kitty', 'current_settings')
         self.kittyConfigData = Path(self.kittyConfigPath).read_text()
-
-
-    @classmethod
-    def userFontInfo(cls):
-        userChosenFont = FontMenu().letUserPickFont()
-        fontSizeByUser = input("What should the size of the font be? ")
-        return {'name': userChosenFont, 'size': fontSizeByUser}
 
 
     def change(self):
@@ -25,6 +20,11 @@ class FontChanger:
         self.changeFontSize(font['size'])
         self.applyChangesToKittyConfig()
 
+
+    def userFontInfo(self):
+        userChosenFont = FontMenu().letUserPickFont()
+        fontSizeByUser = input("What should the size of the font be? ")
+        return {'name': userChosenFont, 'size': fontSizeByUser}
 
     def changeFontFamily(self, userChosenFont):
         fontFamily = regex.compile(r'(font_family\s*)(\w+)')
@@ -53,12 +53,12 @@ class FontChanger:
 class FontMenu:
     def __init__(self):
         self.fonts = getDetailsForFontSelector()
-        self.tempFile = os.path.join(os.getcwd(), 'temporaryFile')
+        self.tempFile = path.join(getcwd(), 'temporaryFile')
 
     def letUserPickFont(self):
         self.writeFontsToTemporaryFile()
         userSelectedFont = self.fontPicker()
-        os.remove(self.tempFile)
+        remove(self.tempFile)
         return userSelectedFont
 
     def writeFontsToTemporaryFile(self):
@@ -83,4 +83,18 @@ class FontMenu:
         return userFont
 
 
-FontChanger().change()
+# FontChanger().change()
+runningKittyProcesses = subprocess.run(
+    ['pgrep kitty'],
+    check=True,
+    text=True,
+    shell=True,
+    capture_output=True
+).stdout.splitlines()
+
+for process in runningKittyProcesses:
+    pid = int(process)
+    kill(pid, signal.SIGHUP)
+
+subprocess.run("kitty &", shell=True)
+sys.exit(1)
