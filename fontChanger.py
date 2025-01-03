@@ -13,13 +13,11 @@ class FontChanger:
         self.kittyConfigPath = path.join(path.expanduser('~'), '.config', 'kitty', 'current_settings')
         self.kittyConfigData = Path(self.kittyConfigPath).read_text()
 
-
     def change(self):
         font = self.userFontInfo()
         self.changeFontFamily(font['name'])
         self.changeFontSize(font['size'])
         self.applyChangesToKittyConfig()
-
 
     def userFontInfo(self):
         userChosenFont = FontMenu().letUserPickFont()
@@ -34,7 +32,6 @@ class FontChanger:
         modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', self.kittyConfigData)
         self.kittyConfigData = modifiedConfig
 
-
     def changeFontSize(self, userChosenFontSize):
         fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
         fontSizeMatch = fontSize.search(self.kittyConfigData)
@@ -42,7 +39,6 @@ class FontChanger:
         actualFontSize = fontSizeMatch.group(2)
         modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{userChosenFontSize}', self.kittyConfigData)
         self.kittyConfigData = modifiedConfig
-
 
     def applyChangesToKittyConfig(self):
         with open(self.kittyConfigPath, "w") as config:
@@ -88,7 +84,7 @@ class TerminalRestart:
     def execute(self):
         kittyProcesses = self.findKittyProcesses()
         self.killKittyProcesses(kittyProcesses)
-        self.restartKittyTerminal()
+        self.reopenKittyTerminal()
 
     def findKittyProcesses(self):
         runningKittyProcesses = subprocess.run(
@@ -105,7 +101,7 @@ class TerminalRestart:
             pid = int(process)
             kill(pid, signal.SIGHUP)
 
-    def restartKittyTerminal(self):
+    def reopenKittyTerminal(self):
         subprocess.run("kitty &", shell=True)
         sys.exit(1)
 
