@@ -14,17 +14,17 @@ class FontChanger:
         self.kittyConfigData = Path(self.kittyConfigPath).read_text()
 
     def change(self):
-        font = self.userFontInfo()
-        self.changeFontFamily(font['name'])
-        self.changeFontSize(font['size'])
-        self.applyChangesToKittyConfig()
+        font = self._userFontInfo()
+        self._changeFontFamily(font['name'])
+        self._changeFontSize(font['size'])
+        self._applyChangesToKittyConfig()
 
-    def userFontInfo(self):
+    def _userFontInfo(self):
         userChosenFont = FontMenu().letUserPickFont()
         fontSizeByUser = input("What should the size of the font be? ")
         return {'name': userChosenFont, 'size': fontSizeByUser}
 
-    def changeFontFamily(self, userChosenFont):
+    def _changeFontFamily(self, userChosenFont):
         fontFamily = regex.compile(r'(font_family\s*)(\w+)')
         familyMatch = fontFamily.search(self.kittyConfigData)
         fontFamilyCategory = familyMatch.group(1)
@@ -32,7 +32,7 @@ class FontChanger:
         modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', self.kittyConfigData)
         self.kittyConfigData = modifiedConfig
 
-    def changeFontSize(self, userChosenFontSize):
+    def _changeFontSize(self, userChosenFontSize):
         fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
         fontSizeMatch = fontSize.search(self.kittyConfigData)
         fontSizeCategory = fontSizeMatch.group(1)
@@ -40,7 +40,7 @@ class FontChanger:
         modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{userChosenFontSize}', self.kittyConfigData)
         self.kittyConfigData = modifiedConfig
 
-    def applyChangesToKittyConfig(self):
+    def _applyChangesToKittyConfig(self):
         with open(self.kittyConfigPath, "w") as config:
             config.writelines(self.kittyConfigData)
 
@@ -52,17 +52,17 @@ class FontMenu:
         self.tempFile = path.join(getcwd(), 'temporaryFile')
 
     def letUserPickFont(self):
-        self.writeFontsToTemporaryFile()
-        userSelectedFont = self.fontPicker()
+        self._writeFontsToTemporaryFile()
+        userSelectedFont = self._fontPicker()
         remove(self.tempFile)
         return userSelectedFont
 
-    def writeFontsToTemporaryFile(self):
+    def _writeFontsToTemporaryFile(self):
         with open(self.tempFile , 'w') as file:
             for font in self.fonts:
                     file.writelines(f'{font.ancestor}\n')
 
-    def fontPicker(self):
+    def _fontPicker(self):
         fontMenu = subprocess.run(
             ['cat', self.tempFile],
             check=True,
@@ -82,11 +82,11 @@ class FontMenu:
 class TerminalRestart:
 
     def execute(self):
-        kittyProcesses = self.findKittyProcesses()
-        self.killKittyProcesses(kittyProcesses)
-        self.reopenKittyTerminal()
+        kittyProcesses = self._findKittyProcesses()
+        self._killKittyProcesses(kittyProcesses)
+        self._reopenKittyTerminal()
 
-    def findKittyProcesses(self):
+    def _findKittyProcesses(self):
         runningKittyProcesses = subprocess.run(
             ['pgrep kitty'],
             check=True,
@@ -96,12 +96,12 @@ class TerminalRestart:
         ).stdout.splitlines()
         return runningKittyProcesses
 
-    def killKittyProcesses(self, runningKittyProcesses):
+    def _killKittyProcesses(self, runningKittyProcesses):
         for process in runningKittyProcesses:
             pid = int(process)
             kill(pid, signal.SIGHUP)
 
-    def reopenKittyTerminal(self):
+    def _reopenKittyTerminal(self):
         subprocess.run("kitty &", shell=True)
         sys.exit(1)
 
