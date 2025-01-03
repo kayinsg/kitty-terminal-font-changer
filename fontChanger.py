@@ -1,4 +1,3 @@
-from dataObjects import FontSelect
 import subprocess
 from os import path, remove, getcwd, kill
 from pathlib import Path
