@@ -1,6 +1,6 @@
 import subprocess
 import re as regex
-from dataObjects import FontFamilyTree, FontDetails, FontSelect
+from fontDataObjects import FontFamilyTree, FontDetails, FontSelect
 from subroutines import eliminateDuplicates
 
 

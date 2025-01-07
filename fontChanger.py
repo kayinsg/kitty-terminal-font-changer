@@ -1,4 +1,4 @@
-from dataObjects import FontSelect
+from fontDataObjects import KittyTerminal
 import subprocess
 from os import path, remove, getcwd, kill
 from pathlib import Path
@@ -10,13 +10,12 @@ import sys
 
 class FontChanger:
     def __init__(self):
-        self.kittyConfigPath = path.join(path.expanduser('~'), '.config', 'kitty', 'current_settings')
-        self.kittyConfigData = Path(self.kittyConfigPath).read_text()
+        self.kitty = KittyTerminal()
 
     def change(self):
         font = self.userFontInfo()
-        self.changeFontFamily(font['name'])
-        self.changeFontSize(font['size'])
+        self.changeFontFamily(font.get('name'))
+        self.changeFontSize(font.get('size'))
         self.applyChangesToKittyConfig()
 
     def userFontInfo(self):
@@ -26,23 +25,23 @@ class FontChanger:
 
     def changeFontFamily(self, userChosenFont):
         fontFamily = regex.compile(r'(font_family\s*)(\w+)')
-        familyMatch = fontFamily.search(self.kittyConfigData)
+        familyMatch = fontFamily.search(self.kitty.data)
         fontFamilyCategory = familyMatch.group(1)
         fontName = familyMatch.group(2)
-        modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', self.kittyConfigData)
-        self.kittyConfigData = modifiedConfig
+        modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', self.kitty.data)
+        self.kitty.data = modifiedConfig
 
     def changeFontSize(self, userChosenFontSize):
         fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
-        fontSizeMatch = fontSize.search(self.kittyConfigData)
+        fontSizeMatch = fontSize.search(self.kitty.data)
         fontSizeCategory = fontSizeMatch.group(1)
         actualFontSize = fontSizeMatch.group(2)
-        modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{userChosenFontSize}', self.kittyConfigData)
-        self.kittyConfigData = modifiedConfig
+        modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{userChosenFontSize}', self.kitty.data)
+        self.kitty.data = modifiedConfig
 
     def applyChangesToKittyConfig(self):
-        with open(self.kittyConfigPath, "w") as config:
-            config.writelines(self.kittyConfigData)
+        with open(self.kitty.path, "w") as config:
+            config.writelines(self.kitty.data)
 
 
 
