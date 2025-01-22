@@ -60,8 +60,12 @@ class CustomFontAddress:
 
     def get(self) -> list[str]:
         listOfFontsAvailable = self.getAllFontAddresses()
-        customFontAddresses = self.filterCustomAddresses(listOfFontsAvailable)
-        return customFontAddresses
+        return list(
+            filter(
+                self.customFontAddress,
+                listOfFontsAvailable
+            )
+        )
 
     def getAllFontAddresses(self):
         showSystemFonts = subprocess.run(
@@ -72,14 +76,6 @@ class CustomFontAddress:
         )
 
         return showSystemFonts.stdout.splitlines()
-
-    def filterCustomAddresses(self, listOfFontsAvailable):
-        return list(
-            filter(
-                self.customFontAddress,
-                listOfFontsAvailable
-            )
-        )
     
     def customFontAddress(self, line):
         customFontFolder = regex.compile('.*monospace.*')
@@ -92,12 +88,8 @@ class CustomFontAddress:
 class FontName:
 
     def getPrimaryFontNames(self, fontAddresses):
-        fontNames = self.getAlikeFontNames(fontAddresses)
-        primaryFontNames = self.extractFundamentalNames(fontNames)
-        return primaryFontNames
-
-    def getAlikeFontNames(self, fontAddresses):
-        return list(map(self.getFontNames, fontAddresses))
+        fontNames = list(map(self.getFontNames, fontAddresses))
+        return list(map(self.getFirstFontNameInGroup, fontNames))
 
     def getFontNames(self, fontAddress):
         filePaths = regex.search(
@@ -107,13 +99,6 @@ class FontName:
         fontGroup = 1
         return filePaths.groups()[fontGroup]
 
-
-    def extractFundamentalNames(
-        self,
-        collectionOfSynonymousFontNames,
-    ):
-        return list(map(self.getFirstFontNameInGroup, collectionOfSynonymousFontNames))
-
     def getFirstFontNameInGroup(self, fontName):
         primaryFontName = regex.compile(r',')
         if primaryFontName.search(fontName):
@@ -121,8 +106,7 @@ class FontName:
                 fontName
                 ).start()  # type: ignore
             return fontName[0:firstFontNameSepartor]
-        else:
-            return fontName
+        return fontName
 
 
 def getFontDetails(fontNames):
