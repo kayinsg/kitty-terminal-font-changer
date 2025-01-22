@@ -5,35 +5,28 @@ from subroutines import eliminateDuplicates
 
 
 def getDetailsForFontSelector():
-    fontFamilies = FontFamily().groupMembers()
-    fontSelectorContainers = list()
-    for fontFamily in fontFamilies:
-        fontContainerForUser = getFontAncestorWithShortestLengthDescendant(
-            fontFamily
+    return list(
+        map(
+            getFontAncestorWithShortestLengthDescendant,
+            FontFamily().groupMembers()
         )
-        fontSelectorContainers.append(fontContainerForUser)
-
-    return fontSelectorContainers
+    )
 
 def getFontAncestorWithShortestLengthDescendant(fontFamily):
-    fontsMetadata = list()
+    fontNames = list(map(extractFontName, fontFamily.descendants))
+    fontNameLengths = list(map(calculateFontNameLength, fontNames))
+    fontsMetadata = list(zip(fontNames, fontNameLengths))
+    shortestFontName = findShortestFontName(fontsMetadata)
+    return FontSelect(fontFamily.ancestor, shortestFontName)
 
-    for descendant in fontFamily.descendants:
+def extractFontName(descendant):
+    return descendant
 
-        fontName = descendant
-        lengthOfFontName = len(fontName)
+def calculateFontNameLength(fontName):
+    return len(fontName)
 
-        fontMetadata = (fontName, lengthOfFontName)
-        fontsMetadata.append(fontMetadata)
-
-    shortestWord = fontsMetadata[0][0]
-    smallest = fontsMetadata[0][1]
-
-    for word, length in fontsMetadata:
-        if length < smallest:
-            shortestWord = word
-
-    return FontSelect(fontFamily.ancestor, shortestWord)
+def findShortestFontName(fontsMetadata):
+    return min(fontsMetadata, key=lambda x: x[1])[0]
 
 
 class FontFamily:
@@ -44,10 +37,7 @@ class FontFamily:
         self.fontDetails = fontDetails
 
     def groupMembers(self):
-        fontFamilies = list()
-        for fontFamily in self.getFontFamily():
-            fontFamilies.append(fontFamily)
-        return fontFamilies
+        return list(map(lambda x: x,list(self.getFontFamily())))
 
     def getFontFamily(self):
         for fontAncestor in self.fontDetails.ancestors:
@@ -81,20 +71,22 @@ class CustomFontAddress:
             text=True
         )
 
-        listOfFontsAvailable = showSystemFonts.stdout.splitlines()
-        return listOfFontsAvailable
+        return showSystemFonts.stdout.splitlines()
 
     def filterCustomAddresses(self, listOfFontsAvailable):
+        return list(
+            filter(
+                self.customFontAddress,
+                listOfFontsAvailable
+            )
+        )
+    
+    def customFontAddress(self, line):
         customFontFolder = regex.compile('.*monospace.*')
-        customFontAddresses = list()
+        if customFontFolder.search(line):
+            return True
+        return False
 
-        for line in listOfFontsAvailable:
-            if customFontFolder.search(line):
-                customFontAddresses.append(line)
-            else:
-                pass
-
-        return customFontAddresses
 
 
 class FontName:
@@ -105,31 +97,32 @@ class FontName:
         return primaryFontNames
 
     def getAlikeFontNames(self, fontAddresses):
-        sample = list()
-        for path in fontAddresses:
-            filePaths = regex.search(
-                r'^(.*?):\s*(.*?)(?::|$)',
-                path
-            )
-            fontGroup = 1
-            sample.append(filePaths.groups()[fontGroup])  # type: ignore
-        return sample
+        return list(map(self.getFontNames, fontAddresses))
+
+    def getFontNames(self, fontAddress):
+        filePaths = regex.search(
+            r'^(.*?):\s*(.*?)(?::|$)',
+            fontAddress
+        )
+        fontGroup = 1
+        return filePaths.groups()[fontGroup]
+
 
     def extractFundamentalNames(
         self,
         collectionOfSynonymousFontNames,
     ):
+        return list(map(self.getFirstFontNameInGroup, collectionOfSynonymousFontNames))
+
+    def getFirstFontNameInGroup(self, fontName):
         primaryFontName = regex.compile(r',')
-        finalFontNames = list()
-        for fileMatch in collectionOfSynonymousFontNames:
-            if primaryFontName.search(fileMatch):
-                firstFontNameSepartor = primaryFontName.search(
-                    fileMatch
-                    ).start()  # type: ignore
-                finalFontNames.append(fileMatch[0:firstFontNameSepartor])
-            else:
-                finalFontNames.append(fileMatch)
-        return finalFontNames
+        if primaryFontName.search(fontName):
+            firstFontNameSepartor = primaryFontName.search(
+                fontName
+                ).start()  # type: ignore
+            return fontName[0:firstFontNameSepartor]
+        else:
+            return fontName
 
 
 def getFontDetails(fontNames):
