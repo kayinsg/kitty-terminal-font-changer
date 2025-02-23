@@ -5,11 +5,20 @@ from subroutines import eliminateDuplicates
 
 
 def getDetailsForFontSelector():
-    return list(
-        map(
-            ShortFontPair().get,
-            FontFamily().groupMembers()
-        )
+    fontDictionary = map(
+        ShortFontPair().get,
+        FontFamily().groupMembers()
+    )
+
+    return list(map(
+        storeDataInFontSelect,
+        fontDictionary
+    ))
+
+def storeDataInFontSelect(fontDictionary):
+    return FontSelect(
+        fontDictionary['fontAncestor'],
+        fontDictionary['shortestFontName']
     )
 
 
@@ -23,7 +32,10 @@ class ShortFontPair:
         fontNameLengths = list(map(self.calculateFontNameLength, fontNames))
         fontsMetadata = list(zip(fontNames, fontNameLengths))
         shortestFontName = self.findShortestFontName(fontsMetadata)
-        return FontSelect(fontFamily.ancestor, shortestFontName)
+        return {
+            'fontAncestor': fontFamily.ancestor,
+            'shortestFontName': shortestFontName,
+        }
 
     def extractFontName(self, descendant):
         return descendant
