@@ -7,27 +7,32 @@ from subroutines import eliminateDuplicates
 def getDetailsForFontSelector():
     return list(
         map(
-            getFontAncestorWithShortestLengthDescendant,
+            ShortFontPair().get,
             FontFamily().groupMembers()
         )
     )
 
 
-def getFontAncestorWithShortestLengthDescendant(fontFamily):
-    fontNames = list(map(extractFontName, fontFamily.descendants))
-    fontNameLengths = list(map(calculateFontNameLength, fontNames))
-    fontsMetadata = list(zip(fontNames, fontNameLengths))
-    shortestFontName = findShortestFontName(fontsMetadata)
-    return FontSelect(fontFamily.ancestor, shortestFontName)
+class ShortFontPair:
 
-def extractFontName(descendant):
-    return descendant
+    def get(self, fontFamily):
+        return self.getFontAncestorWithShortestLengthDescendant(fontFamily)
 
-def calculateFontNameLength(fontName):
-    return len(fontName)
+    def getFontAncestorWithShortestLengthDescendant(self, fontFamily):
+        fontNames = list(map(self.extractFontName, fontFamily.descendants))
+        fontNameLengths = list(map(self.calculateFontNameLength, fontNames))
+        fontsMetadata = list(zip(fontNames, fontNameLengths))
+        shortestFontName = self.findShortestFontName(fontsMetadata)
+        return FontSelect(fontFamily.ancestor, shortestFontName)
 
-def findShortestFontName(fontsMetadata):
-    return min(fontsMetadata, key=lambda x: x[1])[0]
+    def extractFontName(self, descendant):
+        return descendant
+
+    def calculateFontNameLength(self, fontName):
+        return len(fontName)
+
+    def findShortestFontName(self, fontsMetadata):
+        return min(fontsMetadata, key=lambda x: x[1])[0]
 
 
 class FontFamily:
