@@ -5,7 +5,14 @@ import systemFontDataExtractor
 databaseConnection = sqlite3.connect('fonts.db')
 cursor = databaseConnection.cursor()
 cursor.execute(
-    "CREATE TABLE Fonts(FontID INTEGER PRIMARY KEY AUTOINCREMENT, ShortenedName, FullFontName)"
+            """
+            CREATE TABLE Fonts
+            (
+            FontID INTEGER PRIMARY KEY AUTOINCREMENT,
+            ShortenedName,
+            FullFontName
+            )
+            """
 )
 
 fontSelects = systemFontDataExtractor.FontSelectorDetails().get()
@@ -18,7 +25,6 @@ for fontID, font in enumerate(fontSelects):
         '{fontID}',
         '{font.shortenedFontName}',
         '{font.standardFontName}'
-        )
         """
     )
 
