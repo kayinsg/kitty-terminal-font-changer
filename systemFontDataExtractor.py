@@ -11,20 +11,20 @@ class FontSelectorDetails:
         return self.getDetailsForFontSelector(fontFamilies)
 
     def getDetailsForFontSelector(self, fontFamilies):
-        fontDictionary = map(
+        fontContainers = map(
             ShortFontPair().get,
             fontFamilies
         )
 
         return list(map(
             self.storeDataInFontSelect,
-            fontDictionary
+            fontContainers
         ))
 
-    def storeDataInFontSelect(self, fontDictionary):
+    def storeDataInFontSelect(self, fontContainer):
         return FontSelect(
-            fontDictionary['fontAncestor'],
-            fontDictionary['shortestFontName']
+            fontContainer['fontAncestor'],
+            fontContainer['shortestFontName']
         )
 
 
