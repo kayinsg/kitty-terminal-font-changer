@@ -1,12 +1,12 @@
 import sqlite3
 
 class DatabaseFontUpload:
-    def __init__(self):
-        self.database= self.getDatabaseConnection()
+    def __init__(self, databaseName):
+        self.database= self.getDatabaseConnection(databaseName)
 
     @staticmethod
-    def getDatabaseConnection() -> dict:
-        databaseConnection = sqlite3.connect('fonts.db')
+    def getDatabaseConnection(databaseName) -> dict:
+        databaseConnection = sqlite3.connect(databaseName)
         cursor = databaseConnection.cursor()
         return {
             'connection': databaseConnection,
