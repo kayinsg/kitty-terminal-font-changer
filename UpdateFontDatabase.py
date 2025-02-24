@@ -6,7 +6,7 @@ class DatabaseFontUpload:
         self.database= self.getDatabaseConnection()
 
     @staticmethod
-    def getDatabaseConnection():
+    def getDatabaseConnection() -> dict:
         databaseConnection = sqlite3.connect('fonts.db')
         cursor = databaseConnection.cursor()
         return {
@@ -14,14 +14,14 @@ class DatabaseFontUpload:
             'cursor': cursor,
         }
 
-    def upload(self, listOfFontSelects):
+    def upload(self, listOfFontSelects) -> None:
         databaseInteractor = self.database['cursor']
         self.createFontTable(databaseInteractor)
         self.insertFontsWithinTable(databaseInteractor, listOfFontSelects)
 
         self.database['connection'].commit()
 
-    def createFontTable(self, databaseInteractor):
+    def createFontTable(self, databaseInteractor: sqlite3.Cursor) -> None:
         databaseInteractor.execute(
             """
             CREATE TABLE Fonts
@@ -33,7 +33,11 @@ class DatabaseFontUpload:
             """
         )
     
-    def insertFontsWithinTable(self, databaseInteractor, listOfFontSelects):
+    def insertFontsWithinTable(
+        self,
+        databaseInteractor: sqlite3.Cursor,
+        listOfFontSelects,
+    ) -> None:
         for fontID, font in enumerate(listOfFontSelects):
             databaseInteractor.execute(
                 f"""
