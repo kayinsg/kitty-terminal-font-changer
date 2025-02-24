@@ -1,10 +1,28 @@
 import sqlite3
 import systemFontDataExtractor
 
+class DatabaseFontUpload:
+    def __init__(self):
+        self.database= self.getDatabaseConnection()
 
-databaseConnection = sqlite3.connect('fonts.db')
-cursor = databaseConnection.cursor()
-cursor.execute(
+    @staticmethod
+    def getDatabaseConnection():
+        databaseConnection = sqlite3.connect('fonts.db')
+        cursor = databaseConnection.cursor()
+        return {
+            'connection': databaseConnection,
+            'cursor': cursor,
+        }
+
+    def upload(self, listOfFontSelects):
+        databaseInteractor = self.database['cursor']
+        self.createFontTable(databaseInteractor)
+        self.insertFontsWithinTable(databaseInteractor, listOfFontSelects)
+
+        self.database['connection'].commit()
+
+    def createFontTable(self, databaseInteractor):
+        databaseInteractor.execute(
             """
             CREATE TABLE Fonts
             (
@@ -13,19 +31,18 @@ cursor.execute(
             FullFontName
             )
             """
-)
-
-fontSelects = systemFontDataExtractor.FontSelectorDetails().get()
-for fontID, font in enumerate(fontSelects):
-    cursor.execute(
-        f"""
-        INSERT INTO Fonts 
-        VALUES
-        (
-        '{fontID}',
-        '{font.shortenedFontName}',
-        '{font.standardFontName}'
-        """
-    )
-
-databaseConnection.commit()
+        )
+    
+    def insertFontsWithinTable(self, databaseInteractor, listOfFontSelects):
+        for fontID, font in enumerate(listOfFontSelects):
+            databaseInteractor.execute(
+                f"""
+                INSERT INTO Fonts 
+                VALUES
+                (
+                '{fontID}',
+                '{font.shortenedFontName}',
+                '{font.standardFontName}'
+                )
+                """
+            )
