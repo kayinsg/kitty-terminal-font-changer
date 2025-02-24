@@ -4,22 +4,28 @@ from fontDataObjects import FontFamilyTree, FontDetails, FontSelect
 from subroutines import eliminateDuplicates
 
 
-def getDetailsForFontSelector():
-    fontDictionary = map(
-        ShortFontPair().get,
-        FontFamily().groupMembers()
-    )
+class FontSelectorDetails:
 
-    return list(map(
-        storeDataInFontSelect,
-        fontDictionary
-    ))
+    def get(self):
+        fontFamilies = FontFamily().groupMembers()
+        return self.getDetailsForFontSelector(fontFamilies)
 
-def storeDataInFontSelect(fontDictionary):
-    return FontSelect(
-        fontDictionary['fontAncestor'],
-        fontDictionary['shortestFontName']
-    )
+    def getDetailsForFontSelector(self, fontFamilies):
+        fontDictionary = map(
+            ShortFontPair().get,
+            fontFamilies
+        )
+
+        return list(map(
+            self.storeDataInFontSelect,
+            fontDictionary
+        ))
+
+    def storeDataInFontSelect(self, fontDictionary):
+        return FontSelect(
+            fontDictionary['fontAncestor'],
+            fontDictionary['shortestFontName']
+        )
 
 
 class ShortFontPair:
@@ -156,3 +162,5 @@ def getFontAncestorFromName(nonDuplicatedListOfFonts):
                 break
         words.append(''.join(letters))
     return eliminateDuplicates(words)
+
+print(FontSelectorDetails().get())
