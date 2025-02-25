@@ -27,7 +27,8 @@ class DatabaseFontUpload:
             (
             FontID INTEGER PRIMARY KEY AUTOINCREMENT,
             ShortenedName,
-            FullFontName
+            FullFontName,
+            FontSize NULL
             )
             """
         )
