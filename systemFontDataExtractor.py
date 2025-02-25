@@ -23,8 +23,8 @@ class FontSelectorDetails:
 
     def storeDataInFontSelect(self, fontContainer):
         return FontSelect(
-            fontContainer['fontAncestor'],
-            fontContainer['shortestFontName']
+            fontContainer['shortestFontName'],
+            fontContainer['fontAncestor']
         )
 
 
