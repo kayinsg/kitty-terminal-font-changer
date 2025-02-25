@@ -1,5 +1,9 @@
 import sqlite3
 
+class FontRepository:
+    def __init__(self, database):
+        self.database = database
+
 class DatabaseFontUpload:
     def __init__(self, databaseName):
         self.database= self.getDatabaseConnection(databaseName)
@@ -65,9 +69,11 @@ class DatabaseFontUpload:
             )
 
 class DatabaseFontInquirer:
+    def __init__(self, database):
+        self.database = database
 
     def retrieveFonts(self):
-        shortenedFonts = self.fetchFontsForUserView()
+        shortenedFonts = self.fetchFontsForUserView(self.database['cursor'])
         self.flattenCollectionOfFonts(shortenedFonts)
 
     def fetchFontsForUserView(self, databaseInteractor: sqlite3.Cursor) -> list[tuple]:
