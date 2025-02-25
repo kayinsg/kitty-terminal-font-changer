@@ -6,7 +6,7 @@ from subroutines import eliminateDuplicates
 
 class FontSelectorDetails:
 
-    def get(self):
+    def get(self) -> list[FontSelect]:
         fontFamilies = FontFamily().groupMembers()
         return self.getDetailsForFontSelector(fontFamilies)
 
@@ -162,5 +162,3 @@ def getFontAncestorFromName(nonDuplicatedListOfFonts):
                 break
         words.append(''.join(letters))
     return eliminateDuplicates(words)
-
-print(FontSelectorDetails().get())
