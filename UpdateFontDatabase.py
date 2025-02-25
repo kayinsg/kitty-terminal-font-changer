@@ -1,12 +1,8 @@
 import sqlite3
 
 class FontRepository:
-    def __init__(self, database):
-        self.database = database
-
-class DatabaseFontUpload:
     def __init__(self, databaseName):
-        self.database= self.getDatabaseConnection(databaseName)
+        self.database = self.getDatabaseConnection(databaseName)
 
     @staticmethod
     def getDatabaseConnection(databaseName) -> dict:
@@ -16,6 +12,10 @@ class DatabaseFontUpload:
             'connection': databaseConnection,
             'cursor': cursor,
         }
+
+class DatabaseFontUpload:
+    def __init__(self, database):
+        self.database= database
 
     def upload(self, listOfFontSelects) -> None:
         databaseInteractor = self.database['cursor']
