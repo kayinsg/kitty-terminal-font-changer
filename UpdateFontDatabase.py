@@ -15,12 +15,12 @@ class DatabaseFontUpload:
 
     def upload(self, listOfFontSelects) -> None:
         databaseInteractor = self.database['cursor']
-        self.createFontTable(databaseInteractor)
+        self.createStandardFontTable(databaseInteractor)
         self.insertFontsWithinTable(databaseInteractor, listOfFontSelects)
 
         self.database['connection'].commit()
 
-    def createFontTable(self, databaseInteractor: sqlite3.Cursor) -> None:
+    def createStandardFontTable(self, databaseInteractor: sqlite3.Cursor) -> None:
         databaseInteractor.execute(
             """
             CREATE TABLE Fonts
@@ -28,7 +28,6 @@ class DatabaseFontUpload:
             FontID INTEGER PRIMARY KEY AUTOINCREMENT,
             ShortenedName,
             FullFontName,
-            FontSize NULL
             )
             """
         )
