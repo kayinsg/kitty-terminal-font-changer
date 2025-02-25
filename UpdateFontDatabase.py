@@ -45,7 +45,7 @@ class DatabaseFontUpload:
             )
             """
         )
-    
+
     def insertFontsWithinTable(
         self,
         databaseInteractor: sqlite3.Cursor,
@@ -63,3 +63,20 @@ class DatabaseFontUpload:
                 )
                 """
             )
+
+class DatabaseFontInquirer:
+
+    def retrieveFonts(self):
+        shortenedFonts = self.fetchFontsForUserView()
+        self.flattenCollectionOfFonts(shortenedFonts)
+
+    def fetchFontsForUserView(self, databaseInteractor: sqlite3.Cursor) -> list[tuple]:
+        shortenedFontNames = databaseInteractor.execute(
+            "SELECT ShortenedName FROM Fonts"
+        )
+        return shortenedFontNames.fetchall()
+
+    def flattenCollectionOfFonts(self, shortenedFonts):
+        flattenedShortenedFontNames = list()
+        for fontTuple in shortenedFonts:
+            flattenedShortenedFontNames.append(fontTuple[0])
