@@ -7,7 +7,7 @@ from pathlib import Path
 @dataclass
 class FontSelect:
     standardFontName: str
-    externalInterfaceValue: str
+    shortenedFontName: str
 
 
 @dataclass
