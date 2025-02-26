@@ -14,6 +14,13 @@ class FontRepository:
             'cursor': cursor,
         }
 
+    def setup(self, listOfFontSelects):
+        DatabaseFontUpload(self.database).upload(listOfFontSelects)
+
+    def getFontsForUserView(self):
+        DatabaseFontInquirer(self.database).retrieveFonts()
+
+
 
 class DatabaseFontUpload:
     def __init__(self, database):
