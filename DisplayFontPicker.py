@@ -15,7 +15,7 @@ class FontMenu:
     def writeFontsToTemporaryFile(self):
         with open(self.tempFile , 'w') as file:
             for font in self.fonts:
-                    file.writelines(f'{font.ancestor}\n')
+                    file.writelines(f'{font}\n')
 
     def fontPicker(self):
         fontMenu = subprocess.run(
