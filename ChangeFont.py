@@ -1,11 +1,9 @@
 from fontDataObjects import KittyTerminal
 import subprocess
-from os import path, remove, getcwd, kill
-from pathlib import Path
-from systemFontDataExtractor import getDetailsForFontSelector
 import re as regex
 import signal
 import sys
+from os import kill
 
 
 class FontChanger:
