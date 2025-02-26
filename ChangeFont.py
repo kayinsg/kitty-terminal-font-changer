@@ -17,7 +17,6 @@ class FontChanger:
         self.applyChangesToKittyConfig()
 
     def userFontInfo(self):
-        userChosenFont = FontMenu().letUserPickFont()
         fontSizeByUser = input("What should the size of the font be? ")
         return {'name': userChosenFont, 'size': fontSizeByUser}
 
