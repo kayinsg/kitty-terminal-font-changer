@@ -1,5 +1,6 @@
 import sqlite3
 
+
 class FontRepository:
     def __init__(self, databaseName):
         self.database = self.getDatabaseConnection(databaseName)
@@ -13,12 +14,14 @@ class FontRepository:
             'cursor': cursor,
         }
 
+
 class DatabaseFontUpload:
     def __init__(self, database):
         self.database= database
 
     def upload(self, listOfFontSelects) -> None:
         databaseInteractor = self.database['cursor']
+
         self.createStandardFontTable(databaseInteractor)
         self.createCachedFontTable(databaseInteractor)
         self.insertFontsWithinTable(databaseInteractor, listOfFontSelects)
@@ -67,6 +70,7 @@ class DatabaseFontUpload:
                 )
                 """
             )
+
 
 class DatabaseFontInquirer:
     def __init__(self, database):
