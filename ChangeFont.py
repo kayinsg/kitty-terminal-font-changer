@@ -46,8 +46,8 @@ class FontChanger:
 
 
 class FontMenu:
-    def __init__(self):
-        self.fonts = getDetailsForFontSelector()
+    def __init__(self, fontCollection):
+        self.fonts = fontCollection
         self.tempFile = path.join(getcwd(), 'temporaryFile')
 
     def letUserPickFont(self):
