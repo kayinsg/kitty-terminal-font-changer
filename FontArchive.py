@@ -18,7 +18,7 @@ class FontRepository:
         DatabaseFontUpload(self.database).upload(listOfFontSelects)
 
     def getFontsForUserView(self):
-        DatabaseFontInquirer(self.database).retrieveFonts()
+        return DatabaseFontInquirer(self.database).retrieveFonts()
 
 
 
@@ -85,7 +85,7 @@ class DatabaseFontInquirer:
 
     def retrieveFonts(self):
         shortenedFonts = self.fetchFontsForUserView(self.database['cursor'])
-        self.flattenCollectionOfFonts(shortenedFonts)
+        return self.flattenCollectionOfFonts(shortenedFonts)
 
     def fetchFontsForUserView(self, databaseInteractor: sqlite3.Cursor) -> list[tuple]:
         shortenedFontNames = databaseInteractor.execute(
@@ -97,3 +97,4 @@ class DatabaseFontInquirer:
         flattenedShortenedFontNames = list()
         for fontTuple in shortenedFonts:
             flattenedShortenedFontNames.append(fontTuple[0])
+        return flattenedShortenedFontNames
