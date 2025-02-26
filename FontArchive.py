@@ -94,7 +94,9 @@ class DatabaseFontInquirer:
         return shortenedFontNames.fetchall()
 
     def flattenCollectionOfFonts(self, shortenedFonts):
-        flattenedShortenedFontNames = list()
-        for fontTuple in shortenedFonts:
-            flattenedShortenedFontNames.append(fontTuple[0])
-        return flattenedShortenedFontNames
+        return list(
+            map(
+                lambda shortenedFontName: shortenedFontName[0],
+                shortenedFonts
+            )
+        )
