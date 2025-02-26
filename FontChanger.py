@@ -63,6 +63,3 @@ class TerminalRestart:
     def reopenKittyTerminal(self):
         subprocess.run("kitty &", shell=True)
         sys.exit(1)
-
-FontChanger().change()
-TerminalRestart().execute()
