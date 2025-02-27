@@ -14,24 +14,22 @@ class FontRepository:
             'cursor': cursor,
         }
 
-    def setup(self, listOfFontSelects):
-        DatabaseFontUpload(self.database).upload(listOfFontSelects)
+    def setup(self):
+        DatabaseFontTable(self.database).create()
 
     def getFontsForUserView(self):
         return DatabaseFontInquirer(self.database).retrieveFonts()
 
 
-
-class DatabaseFontUpload:
+class DatabaseFontTable:
     def __init__(self, database):
         self.database= database
 
-    def upload(self, listOfFontSelects) -> None:
+    def create(self) -> None:
         databaseInteractor = self.database['cursor']
 
         self.createStandardFontTable(databaseInteractor)
         self.createCachedFontTable(databaseInteractor)
-        self.insertFontsWithinTable(databaseInteractor, listOfFontSelects)
 
         self.database['connection'].commit()
 
@@ -59,6 +57,14 @@ class DatabaseFontUpload:
             )
             """
         )
+
+
+class DatabaseFontUpload:
+    def __init__(self, database):
+        self.database = database
+
+    def uploadFonts(self, listOfFonts):
+        self.insertFontsWithinTable(self.database['cursor'], listOfFonts)
 
     def insertFontsWithinTable(
         self,
