@@ -18,18 +18,22 @@ class FontMenu:
                     file.writelines(f'{font}\n')
 
     def fontPicker(self):
-        fontMenu = subprocess.run(
-            ['cat', self.tempFile],
-            check=True,
-            text=True,
-            stdout=subprocess.PIPE
-        )
-        userFont = subprocess.run(
-            ['fzf'],
-            input = fontMenu.stdout,
-            check=True,
-            capture_output=True,
-            text=True
-        ).stdout.strip()
-        return userFont
-
+        try:
+            fontMenu = subprocess.run(
+                ['cat', self.tempFile],
+                check=True,
+                text=True,
+                stdout=subprocess.PIPE
+            )
+            userFont = subprocess.run(
+                ['fzf'],
+                input = fontMenu.stdout,
+                check=True,
+                capture_output=True,
+                text=True
+            ).stdout.strip()
+            return userFont
+        except subprocess.CalledProcessError as FZFError:
+            print("[ ERROR ] No Fonts Were Selected")
+            print("Full Error Info Is Found Below")
+            print(FZFError)
