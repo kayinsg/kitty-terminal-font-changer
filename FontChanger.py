@@ -7,18 +7,15 @@ from os import kill
 
 
 class FontChanger:
-    def __init__(self):
+    def __init__(self, font, size):
         self.kitty = KittyTerminal()
+        self.font = font
+        self.size = size
 
     def change(self):
-        font = self.userFontInfo()
-        self.changeFontFamily(font.get('name'))
-        self.changeFontSize(font.get('size'))
+        self.changeFontFamily(self.font)
+        self.changeFontSize(self.size)
         self.applyChangesToKittyConfig()
-
-    def userFontInfo(self):
-        fontSizeByUser = input("What should the size of the font be? ")
-        return {'name': userChosenFont, 'size': fontSizeByUser}
 
     def changeFontFamily(self, userChosenFont):
         fontFamily = regex.compile(r'(font_family\s*)(\w+)')
