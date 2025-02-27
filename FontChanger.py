@@ -12,7 +12,7 @@ class FontChanger:
         self.font = font
         self.size = size
 
-    def change(self):
+    def applyChanges(self):
         self.changeFontFamily(self.font)
         self.changeFontSize(self.size)
         self.applyChangesToKittyConfig()
