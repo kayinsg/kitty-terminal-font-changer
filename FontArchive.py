@@ -40,9 +40,9 @@ class DatabaseFontUpload:
             """
             CREATE TABLE IF NOT EXISTS Fonts
             (
-            FontID INTEGER PRIMARY KEY AUTOINCREMENT,
-            ShortenedName,
-            FullFontName
+            FontID INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
+            ShortenedName UNIQUE,
+            FullFontName UNIQUE
             )
             """
         )
@@ -52,9 +52,9 @@ class DatabaseFontUpload:
             """
             CREATE TABLE IF NOT EXISTS CachedFonts
             (
-            FontID INTEGER PRIMARY KEY AUTOINCREMENT,
-            ShortenedName,
-            FullFontName,
+            FontID INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
+            ShortenedName UNIQUE,
+            FullFontName UNIQUE,
             FontSize NULL
             )
             """
