@@ -38,7 +38,7 @@ class DatabaseFontUpload:
     def createStandardFontTable(self, databaseInteractor: sqlite3.Cursor) -> None:
         databaseInteractor.execute(
             """
-            CREATE TABLE Fonts
+            CREATE TABLE IF NOT EXISTS Fonts
             (
             FontID INTEGER PRIMARY KEY AUTOINCREMENT,
             ShortenedName,
@@ -50,7 +50,7 @@ class DatabaseFontUpload:
     def createCachedFontTable(self, databaseInteractor: sqlite3.Cursor) -> None:
         databaseInteractor.execute(
             """
-            CREATE TABLE CachedFonts
+            CREATE TABLE IF NOT EXISTS CachedFonts
             (
             FontID INTEGER PRIMARY KEY AUTOINCREMENT,
             ShortenedName,
