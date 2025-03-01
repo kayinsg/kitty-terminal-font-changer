@@ -2,18 +2,24 @@ from os import path, remove, getcwd
 import subprocess
 
 class FontMenu:
+    
+    @staticmethod
+    def getTemporaryFile():
+        return str(path.join(getcwd(), 'temporaryFile'))
+
     def __init__(self, fontCollection):
         self.fonts = fontCollection
-        self.tempFile = path.join(getcwd(), 'temporaryFile')
+        self.temporaryFile = FontMenu.getTemporaryFile()
+        self.interface = FZFInterface(self.temporaryFile)
 
     def letUserPickFont(self):
         self.writeFontsToTemporaryFile()
-        userSelectedFont = FZFInterface(self.tempFile).fontPicker()
-        remove(self.tempFile)
+        userSelectedFont = self.interface.fontPicker()
+        remove(self.temporaryFile)
         return userSelectedFont
 
     def writeFontsToTemporaryFile(self):
-        with open(self.tempFile , 'w') as file:
+        with open(self.temporaryFile , 'w') as file:
             for font in self.fonts:
                     file.writelines(f'{font}\n')
 
