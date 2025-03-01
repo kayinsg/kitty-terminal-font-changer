@@ -10,12 +10,6 @@ class FontSelect:
     shortenedFontName: str
 
 
-@dataclass
-class FontFamilyTree:
-    ancestor: str
-    descendants: list[str]
-
-
 class FontDetails(NamedTuple):
     ancestors: list[str]
     listOfFonts: list[str]
