@@ -13,20 +13,11 @@ def databasePath(fontDatabaseName):
 def getFontFromUser():
     return input("What should the size of the font be? ")
 
-fontDatabaseAlreadyExists = os.path.exists(databasePath(fontDatabaseName))
-if fontDatabaseAlreadyExists:
-    database = FontRepository(fontDatabaseName)
-    userFonts = database.getFontsForUserView()
-    userFontName = FontMenu(userFonts).letUserPickFont()
-    userFontSize = getFontFromUser()
-    FontChanger(userFontName, userFontSize).applyChanges()
-    TerminalRestart().execute()
-else:
-    database = FontRepository(fontDatabaseName)
-    fontCollection = FontSelectorDetails().get()
-    database.setup(fontCollection)
-    userFonts = database.getFontsForUserView()
-    userFontName = FontMenu(userFonts).letUserPickFont()
-    userFontSize = getFontFromUser()
-    FontChanger(userFontName, userFontSize).applyChanges()
-    TerminalRestart().execute()
+database = FontRepository(fontDatabaseName)
+fontCollection = FontSelectorDetails().get()
+database.setup(fontCollection)
+userFonts = database.getFontsForUserView()
+userFontName = FontMenu(userFonts).letUserPickFont()
+userFontSize = getFontFromUser()
+FontChanger(userFontName, userFontSize).applyChanges()
+TerminalRestart().execute()
