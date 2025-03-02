@@ -1,6 +1,6 @@
 import subprocess
 import re as regex
-from fontDataObjects import FontDetails, FontSelect
+from fontDataObjects import FontSelect
 from utils import sanitizeFontNames
 
 
@@ -54,7 +54,6 @@ class ShortFontPair:
 
 
 class FontFamily:
-
     def __init__(self):
         customFontPaths = CustomFontAddress().get()
         self.primaryFontNames = sanitizeFontNames(FontName().getPrimaryFontNames(customFontPaths))
@@ -120,19 +119,11 @@ class FontName:
         fontNames = list(map(self.getFontNames, fontAddresses))
         return list(map(self.getFirstFontNameInGroup, fontNames))
 
-    def getFontNames(self, fontAddress):
-        filePaths = regex.search(
-            r'^(.*?):\s*(.*?)(?::|$)',
-            fontAddress
-        )
+    def getFontNames(self, fontAddresses):
         fontGroup = 1
-        return filePaths.groups()[fontGroup]
+        getGroupOfFontNames = lambda fontAddresses: fontAddresses.split(":")[fontGroup].strip()
+        return list(map(getGroupOfFontNames, fontAddresses))
 
     def getFirstFontNameInGroup(self, relatedFontNames):
-        separatorMatch = regex.search(',', relatedFontNames)
-
-        if separatorMatch:
-            separatorIndex = separatorMatch.start()
-            firstFontInGroupOfFonts = relatedFontNames[:separatorIndex]
-
-        return firstFontInGroupOfFonts
+        getFirstFontNameInGroup = lambda groupOfFonts: groupOfFonts.split(',')[0]
+        return list(map(getFirstFontNameInGroup, relatedFontNames))
