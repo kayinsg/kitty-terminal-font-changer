@@ -20,3 +20,13 @@ def updateLocalFontDatabase():
         updateFonts.check_returncode()
     except subprocess.CalledProcessError:
         exit(1)
+
+def sanitizeFontNames(primaryFontNames):
+    alphabeticallyOrderedList = sorted(
+        primaryFontNames,
+        key=lambda x: x[0]
+    )
+    nonDuplicatedListOfFonts = set(
+        alphabeticallyOrderedList
+    )
+    return nonDuplicatedListOfFonts
