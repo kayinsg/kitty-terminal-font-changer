@@ -15,7 +15,7 @@ def getFontFromUser():
 
 database = FontRepository(fontDatabaseName)
 fontCollection = FontSelectorDetails().get()
-database.setup(fontCollection)
+database.setup()
 userFonts = database.getFontsForUserView()
 userFontName = FontMenu(userFonts).letUserPickFont()
 userFontSize = getFontFromUser()
