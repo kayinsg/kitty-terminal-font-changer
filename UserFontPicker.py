@@ -8,7 +8,7 @@ class FontMenu:
 
     def letUserPickFont(self):
         self.writeFontsToTemporaryFile()
-        userSelectedFont = self.fontPicker()
+        userSelectedFont = FZFInterface(self.tempFile).fontPicker()
         remove(self.tempFile)
         return userSelectedFont
 
@@ -17,22 +17,32 @@ class FontMenu:
             for font in self.fonts:
                     file.writelines(f'{font}\n')
 
+class FZFInterface:
+    def __init__(self, temporaryFile):
+        self.temporaryFile = temporaryFile
+
     def fontPicker(self):
+       FZFInput = self.getTemporaryFileOutput()
+       fontChosenByUser = self.displayFZFMenuToUser(FZFInput) 
+       return fontChosenByUser
+
+    def getTemporaryFileOutput(self):
+        return subprocess.run(
+            ['cat', self.temporaryFile],
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE
+        ).stdout
+
+    def displayFZFMenuToUser(self, FZFInput):
         try:
-            fontMenu = subprocess.run(
-                ['cat', self.tempFile],
-                check=True,
-                text=True,
-                stdout=subprocess.PIPE
-            )
-            userFont = subprocess.run(
+            return subprocess.run(
                 ['fzf'],
-                input = fontMenu.stdout,
+                input = FZFInput,
                 check=True,
                 capture_output=True,
                 text=True
             ).stdout.strip()
-            return userFont
         except subprocess.CalledProcessError as FZFError:
             print("[ ERROR ] No Fonts Were Selected")
             print("Full Error Info Is Found Below")
