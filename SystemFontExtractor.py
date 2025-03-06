@@ -9,29 +9,21 @@ class FontSelectorDetails:
         self.fontAdresses = fontAdresses
 
     def get(self) -> list[FontSelect]:
-        fontAddresses = self.fontAdresses.get()
-        groupOfRelatedFontNames = FontName(fontAddresses).getFontNames()
-        fontFamilies = FontFamily(groupOfRelatedFontNames).groupFontsWithParent()
-        return self.getDetailsForFontSelector(fontFamilies)
+        fontFamilies = self.getFontFamilies()
+        return self.storeDataInFontSelect(self.ancestorGroupedWithShortestLengthDescendant(fontFamilies))
 
-    def getDetailsForFontSelector(self, fontFamilies):
-        fontContainers = map(
-            ShortFontPair().get,
-            fontFamilies
-        )
+    def getFontFamilies(self) -> list[dict[str, str | list[str]]]:
+        fontAddresses: list[str] = self.fontAdresses.get()
+        groupOfRelatedFontNames: list[str] = FontName(fontAddresses).getFontNames()
+        fontFamilies: list[dict[str, str | list[str]]] = FontFamily(groupOfRelatedFontNames).groupFontsWithParent()
+        return fontFamilies
 
-        return list(
-            map(
-                self.storeDataInFontSelect,
-                fontContainers
-            )
-        )
+    def ancestorGroupedWithShortestLengthDescendant(self, fontFamilies: list[dict[str, str | list[str]]]) -> list[dict[str, str]]:
+        return list(map(ShortFontPair().getFontAncestorWithShortestLengthDescendant, fontFamilies))
 
-    def storeDataInFontSelect(self, fontContainer):
-        return FontSelect(
-            fontContainer['shortestFontName'],
-            fontContainer['fontAncestor']
-        )
+    def storeDataInFontSelect(self, fontContainer: list[dict[str, str]]) -> list[FontSelect]:
+        storeInFontSelect = lambda fontContainer: FontSelect(fontContainer['shortestFontName'], fontContainer['fontAncestor'])
+        return list(map(storeInFontSelect, fontContainer))
 
 
 class CustomFontAddress:
