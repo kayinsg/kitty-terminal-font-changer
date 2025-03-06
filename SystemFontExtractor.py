@@ -105,17 +105,17 @@ class ShortFontPair:
 
 
 class FontFamily:
-    def __init__(self, relatedGroupsOfFontNames):
-        self.primaryFontNames = relatedGroupsOfFontNames
-        self.ancestors = FontFamily.findFontAncestors(self.primaryFontNames)
+    def __init__(self, relatedGroupsOfFontNames: list[str]):
+        self.primaryFontNames: list[str] = relatedGroupsOfFontNames
+        self.ancestors: list[str] = FontFamily.findFontAncestors(self.primaryFontNames)
 
     @staticmethod
-    def findFontAncestors(fonts):
+    def findFontAncestors(fonts) -> list[str]:
         extractAncestor = lambda name: name.split()[0]
         ancestors = map(extractAncestor, fonts)
         return UniqueFonts(ancestors).get()
 
-    def groupFontsWithParent(self):
+    def groupFontsWithParent(self) -> list[dict[str, str | list[str]]]:
         processFonts = lambda ancestor: self.categorizeFontsAccordingToAncestor(ancestor, self.primaryFontNames)
         return list(
             map(
@@ -124,13 +124,13 @@ class FontFamily:
             )
         )
 
-    def categorizeFontsAccordingToAncestor(self, fontAncestor, listOfFonts):
+    def categorizeFontsAccordingToAncestor(self, fontAncestor: str, listOfFonts: list[str]) -> dict[str, str | list[str]]:
        return {
            'Ancestor': fontAncestor,
            'Descendants': self.getMatchingFontsRegardingAncestor(fontAncestor, listOfFonts),
        }
 
-    def getMatchingFontsRegardingAncestor(self, fontAncestor:str , listOfFonts: list[str]):
+    def getMatchingFontsRegardingAncestor(self, fontAncestor: str, listOfFonts: list[str]) -> list[str]:
         fontMatchesAncestor = lambda descendant: regex.search(fontAncestor, descendant) is not None
         return list(
             filter(
