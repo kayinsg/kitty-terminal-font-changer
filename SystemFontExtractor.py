@@ -33,6 +33,69 @@ class FontSelectorDetails:
         )
 
 
+class CustomFontAddress:
+
+    def get(self) -> list[str]:
+        listOfFontsAvailable = self.getAllFontAddresses()
+        return list(
+            filter(
+                self.customFontAddress,
+                listOfFontsAvailable
+            )
+        )
+
+    def getAllFontAddresses(self):
+        showSystemFonts = subprocess.run(
+            ["fc-list"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+
+        return showSystemFonts.stdout.splitlines()
+
+    def customFontAddress(self, line):
+        customFontFolder = regex.compile('.*monospace.*')
+        if customFontFolder.search(line):
+            return True
+        return False
+
+
+class FontName:
+    def __init__(self, fontAddresses):
+        self.fontAddresses = fontAddresses
+
+    def getFontNames(self):
+        relevantFunction = lambda fontAddresses: self.getFirstFontName(self.getFontGroup(fontAddresses))
+        uniqueFonts = UniqueFonts(list(map(relevantFunction, self.fontAddresses))).get()
+        return uniqueFonts
+
+    def getFontGroup(self, fontAddresses):
+        parts = fontAddresses.split(':')
+        if len(parts) > 1:
+            fontNames = parts[1].strip()
+            return fontNames
+
+    def getFirstFontName(self, groupOfRelatedFontNames):
+        return groupOfRelatedFontNames.split(',')[0].strip()
+
+
+class UniqueFonts:
+    def __init__(self, fonts):
+        self.fonts = fonts
+
+    def get(self):
+        unique_fonts = []
+        seen_fonts = set()
+
+        for font in self.fonts:
+            if font not in seen_fonts:
+                unique_fonts.append(font)
+                seen_fonts.add(font)
+
+        return unique_fonts
+
+
 class ShortFontPair:
 
     def get(self, fontFamily):
@@ -98,66 +161,3 @@ class FontFamily:
                 listOfFonts
             )
         )
-
-
-class CustomFontAddress:
-
-    def get(self) -> list[str]:
-        listOfFontsAvailable = self.getAllFontAddresses()
-        return list(
-            filter(
-                self.customFontAddress,
-                listOfFontsAvailable
-            )
-        )
-
-    def getAllFontAddresses(self):
-        showSystemFonts = subprocess.run(
-            ["fc-list"],
-            check=True,
-            capture_output=True,
-            text=True
-        )
-
-        return showSystemFonts.stdout.splitlines()
-    
-    def customFontAddress(self, line):
-        customFontFolder = regex.compile('.*monospace.*')
-        if customFontFolder.search(line):
-            return True
-        return False
-
-
-class FontName:
-    def __init__(self, fontAddresses):
-        self.fontAddresses = fontAddresses
-
-    def getFontNames(self):
-        relevantFunction = lambda fontAddresses: self.getFirstFontName(self.getFontGroup(fontAddresses))
-        uniqueFonts = UniqueFonts(list(map(relevantFunction, self.fontAddresses))).get()
-        return uniqueFonts
-
-    def getFontGroup(self, fontAddresses):
-        parts = fontAddresses.split(':')
-        if len(parts) > 1:
-            fontNames = parts[1].strip()
-            return fontNames
-
-    def getFirstFontName(self, groupOfRelatedFontNames):
-        return groupOfRelatedFontNames.split(',')[0].strip()
-
-
-class UniqueFonts:
-    def __init__(self, fonts):
-        self.fonts = fonts
-
-    def get(self):
-        unique_fonts = []
-        seen_fonts = set()
-
-        for font in self.fonts:
-            if font not in seen_fonts:
-                unique_fonts.append(font)
-                seen_fonts.add(font)
-
-        return unique_fonts
