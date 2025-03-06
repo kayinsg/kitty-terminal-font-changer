@@ -1,13 +1,13 @@
 import subprocess
 import re as regex
-from fontDataObjects import FontFamilyTree, FontDetails, FontSelect
-from utils import eliminateDuplicates
+from fontDataObjects import FontSelect
+from utils import sanitizeFontNames
 
 
 class FontSelectorDetails:
 
     def get(self) -> list[FontSelect]:
-        fontFamilies = FontFamily().groupMembers()
+        fontFamilies = FontFamily().groupFontsWithParent()
         return self.getDetailsForFontSelector(fontFamilies)
 
     def getDetailsForFontSelector(self, fontFamilies):
@@ -54,30 +54,39 @@ class ShortFontPair:
 
 
 class FontFamily:
-    def __init__(self):
-        customFontPaths = CustomFontAddress().get()
-        primaryFontNames = FontName().getPrimaryFontNames(customFontPaths)
-        fontDetails = getFontDetails(primaryFontNames)
-        self.fontDetails = fontDetails
+    def __init__(self, relatedGroupsOfFontNames):
+        self.primaryFontNames = relatedGroupsOfFontNames
+        self.ancestors = FontFamily.findFontAncestors(self.primaryFontNames)
 
-    def groupMembers(self):
-        return list(map(lambda x: x, list(self.getFontFamily())))
+    @staticmethod
+    def findFontAncestors(fonts):
+        extractAncestor = lambda name: name.split()[0]
+        ancestors = map(extractAncestor, fonts)
+        return UniqueFonts(ancestors).get()
 
-    def getFontFamily(self):
-        for fontAncestor in self.fontDetails.ancestors:
-            fontFamily = FontFamilyTree(fontAncestor, [""])
-            for font in self.fontDetails.listOfFonts:
-                descendantOfTheFontFamilyHasBeenFound = regex.search(
-                    fontAncestor,
-                    font
-                )
-                if descendantOfTheFontFamilyHasBeenFound:
-                    fontFamily.descendants.append(font)
-                else:
-                    pass
+    def groupFontsWithParent(self):
+        processFonts = lambda ancestor: self.categorizeFontsAccordingToAncestor(ancestor, self.primaryFontNames)
+        return list(
+            map(
+                processFonts,
+                self.ancestors
+            )
+        )
 
-            fontFamily.descendants = fontFamily.descendants[1::]
-            yield fontFamily
+    def categorizeFontsAccordingToAncestor(self, fontAncestor, listOfFonts):
+       return {
+           'Ancestor': fontAncestor,
+           'Descendants': self.getMatchingFontsRegardingAncestor(fontAncestor, listOfFonts),
+       }
+
+    def getMatchingFontsRegardingAncestor(self, fontAncestor:str , listOfFonts: list[str]):
+        fontMatchesAncestor = lambda descendant: regex.search(fontAncestor, descendant) is not None
+        return list(
+            filter(
+                fontMatchesAncestor,
+                listOfFonts
+            )
+        )
 
 
 class CustomFontAddress:
@@ -122,43 +131,11 @@ class FontName:
         fontGroup = 1
         return filePaths.groups()[fontGroup]
 
-    def getFirstFontNameInGroup(self, fontName):
-        primaryFontName = regex.compile(r',')
-        if primaryFontName.search(fontName):
-            firstFontNameSepartor = primaryFontName.search(
-                fontName
-                ).start()  # type: ignore
-            return fontName[0:firstFontNameSepartor]
-        return fontName
+    def getFirstFontNameInGroup(self, relatedFontNames):
+        separatorMatch = regex.search(',', relatedFontNames)
 
+        if separatorMatch:
+            separatorIndex = separatorMatch.start()
+            firstFontInGroupOfFonts = relatedFontNames[:separatorIndex]
 
-def getFontDetails(fontNames):
-    cleanedListOfFonts = sanitizeFontNames(fontNames)
-    ancestors = getFontAncestorFromName(cleanedListOfFonts)
-    return FontDetails(ancestors, cleanedListOfFonts)
-
-
-def sanitizeFontNames(primaryFontNames):
-    alphabeticallyOrderedList = sorted(
-        primaryFontNames,
-        key=lambda x: x[0]
-    )
-    nonDuplicatedListOfFonts = eliminateDuplicates(
-        alphabeticallyOrderedList
-    )
-    return nonDuplicatedListOfFonts
-
-
-def getFontAncestorFromName(nonDuplicatedListOfFonts):
-    words = list()
-    for font in nonDuplicatedListOfFonts:
-        letters = list()
-        for currentCharacter in font[0::]:
-            characterIsNotACapitalLetter = currentCharacter.islower() is True
-            characterIsNotASpace = currentCharacter != " "
-            if characterIsNotASpace or characterIsNotACapitalLetter:
-                letters.append(currentCharacter)
-            else:
-                break
-        words.append(''.join(letters))
-    return eliminateDuplicates(words)
+        return firstFontInGroupOfFonts
