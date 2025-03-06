@@ -4,9 +4,13 @@ from fontDataObjects import FontSelect
 
 
 class FontSelectorDetails:
+    def __init__(self, fontAdresses):
+        self.fontAdresses = fontAdresses
 
     def get(self) -> list[FontSelect]:
-        fontFamilies = FontFamily().groupFontsWithParent()
+        fontAddresses = self.fontAdresses.get()
+        groupOfRelatedFontNames = FontName(fontAddresses).getFontNames()
+        fontFamilies = FontFamily(groupOfRelatedFontNames).groupFontsWithParent()
         return self.getDetailsForFontSelector(fontFamilies)
 
     def getDetailsForFontSelector(self, fontFamilies):
@@ -15,10 +19,12 @@ class FontSelectorDetails:
             fontFamilies
         )
 
-        return list(map(
-            self.storeDataInFontSelect,
-            fontContainers
-        ))
+        return list(
+            map(
+                self.storeDataInFontSelect,
+                fontContainers
+            )
+        )
 
     def storeDataInFontSelect(self, fontContainer):
         return FontSelect(
