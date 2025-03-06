@@ -39,12 +39,12 @@ class ShortFontPair:
         return self.getFontAncestorWithShortestLengthDescendant(fontFamily)
 
     def getFontAncestorWithShortestLengthDescendant(self, fontFamily):
-        fontNames = list(map(self.extractFontName, fontFamily.descendants))
+        fontNames = list(map(self.extractFontName, fontFamily['Descendants']))
         fontNameLengths = list(map(self.calculateFontNameLength, fontNames))
         fontsMetadata = list(zip(fontNames, fontNameLengths))
         shortestFontName = self.findShortestFontName(fontsMetadata)
         return {
-            'fontAncestor': fontFamily.ancestor,
+            'fontAncestor': fontFamily['Ancestor'],
             'shortestFontName': shortestFontName,
         }
 
@@ -55,7 +55,13 @@ class ShortFontPair:
         return len(fontName)
 
     def findShortestFontName(self, fontsMetadata):
-        return min(fontsMetadata, key=lambda x: x[1])[0]
+        fontSize = 1
+        fontNameLength = lambda fontDetails: fontDetails[fontSize]
+
+        return min(
+            fontsMetadata,
+            key=fontNameLength
+        )[0]
 
 
 class FontFamily:
