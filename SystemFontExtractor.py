@@ -1,7 +1,6 @@
 import subprocess
 import re as regex
 from fontDataObjects import FontSelect
-from utils import sanitizeFontNames
 
 
 class FontSelectorDetails:
@@ -118,24 +117,35 @@ class CustomFontAddress:
 
 
 class FontName:
+    def __init__(self, fontAddresses):
+        self.fontAddresses = fontAddresses
 
-    def getPrimaryFontNames(self, fontAddresses):
-        fontNames = list(map(self.getFontNames, fontAddresses))
-        return list(map(self.getFirstFontNameInGroup, fontNames))
+    def getFontNames(self):
+        relevantFunction = lambda fontAddresses: self.getFirstFontName(self.getFontGroup(fontAddresses))
+        uniqueFonts = UniqueFonts(list(map(relevantFunction, self.fontAddresses))).get()
+        return uniqueFonts
 
-    def getFontNames(self, fontAddress):
-        filePaths = regex.search(
-            r'^(.*?):\s*(.*?)(?::|$)',
-            fontAddress
-        )
-        fontGroup = 1
-        return filePaths.groups()[fontGroup]
+    def getFontGroup(self, fontAddresses):
+        parts = fontAddresses.split(':')
+        if len(parts) > 1:
+            fontNames = parts[1].strip()
+            return fontNames
 
-    def getFirstFontNameInGroup(self, relatedFontNames):
-        separatorMatch = regex.search(',', relatedFontNames)
+    def getFirstFontName(self, groupOfRelatedFontNames):
+        return groupOfRelatedFontNames.split(',')[0].strip()
 
-        if separatorMatch:
-            separatorIndex = separatorMatch.start()
-            firstFontInGroupOfFonts = relatedFontNames[:separatorIndex]
 
-        return firstFontInGroupOfFonts
+class UniqueFonts:
+    def __init__(self, fonts):
+        self.fonts = fonts
+
+    def get(self):
+        unique_fonts = []
+        seen_fonts = set()
+
+        for font in self.fonts:
+            if font not in seen_fonts:
+                unique_fonts.append(font)
+                seen_fonts.add(font)
+
+        return unique_fonts
