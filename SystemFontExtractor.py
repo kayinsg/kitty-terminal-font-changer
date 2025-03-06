@@ -1,6 +1,7 @@
 import subprocess
 import re as regex
 from fontDataObjects import FontSelect
+from utils import UniqueFonts
 
 
 class FontSelectorDetails:
@@ -78,22 +79,6 @@ class FontName:
 
     def getFirstFontName(self, groupOfRelatedFontNames):
         return groupOfRelatedFontNames.split(',')[0].strip()
-
-
-class UniqueFonts:
-    def __init__(self, fonts):
-        self.fonts = fonts
-
-    def get(self):
-        unique_fonts = []
-        seen_fonts = set()
-
-        for font in self.fonts:
-            if font not in seen_fonts:
-                unique_fonts.append(font)
-                seen_fonts.add(font)
-
-        return unique_fonts
 
 
 class ShortFontPair:
