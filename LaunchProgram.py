@@ -2,7 +2,7 @@ import os
 from SystemFontExtractor import FontSelectorDetails
 from FontArchive import FontRepository
 from UserFontPicker import FontMenu
-from FontChanger import FontChanger, TerminalRestart
+from FontChanger import FontChanger, TerminalRestart, KittyTerminal
 
 fontDatabaseName = 'fonts.db'
 
@@ -19,5 +19,5 @@ database.setup()
 userFonts = database.getFontsForUserView()
 userFontName = FontMenu(userFonts).letUserPickFont()
 userFontSize = getFontFromUser()
-FontChanger(userFontName, userFontSize).applyChanges()
+FontChanger(KittyTerminal()).change(userFontName, userFontSize)
 TerminalRestart().execute()

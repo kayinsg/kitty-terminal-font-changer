@@ -1,41 +1,66 @@
 from fontDataObjects import KittyTerminal
 import subprocess
-import re as regex
 import signal
 import sys
 from os import kill
 
 
 class FontChanger:
-    def __init__(self, font, size):
-        self.kitty = KittyTerminal()
-        self.font = font
-        self.size = size
+    def __init__(self, kitty):
+        self.kitty = kitty
+        self._fileWriter = ConfigFileWriter()
 
-    def applyChanges(self):
-        self.changeFontFamily(self.font)
-        self.changeFontSize(self.size)
-        self.applyChangesToKittyConfig()
+    @property
+    def fileWriter(self):
+        return self._fileWriter
 
-    def changeFontFamily(self, userChosenFont):
-        fontFamily = regex.compile(r'(font_family\s*)(\w+)')
-        familyMatch = fontFamily.search(self.kitty.data)
-        fontFamilyCategory = familyMatch.group(1)
-        fontName = familyMatch.group(2)
-        modifiedConfig = regex.sub(fontFamily, f'{fontFamilyCategory}{userChosenFont}', self.kitty.data)
-        self.kitty.data = modifiedConfig
+    @fileWriter.setter
+    def fileWriter(self, fileWriter):
+        if fileWriter:
+            self._fileWriter = fileWriter
+            return
+        self._fileWriter = ConfigFileWriter()
 
-    def changeFontSize(self, userChosenFontSize):
-        fontSize = regex.compile(r'(\bfont_size\s+)(\d+(\.\d+)?)')
-        fontSizeMatch = fontSize.search(self.kitty.data)
-        fontSizeCategory = fontSizeMatch.group(1)
-        actualFontSize = fontSizeMatch.group(2)
-        modifiedConfig = regex.sub(fontSize, f'{fontSizeCategory}{userChosenFontSize}', self.kitty.data)
-        self.kitty.data = modifiedConfig
+    def change(self, newFontName, newFontSize):
+        linesInKittyConfig = self.kitty.data
+        newFontProperties = {'FontName': newFontName, 'FontSize': newFontSize}
 
-    def applyChangesToKittyConfig(self):
-        with open(self.kitty.path, "w") as config:
-            config.writelines(self.kitty.data)
+        updatedConfig=self.getModifiedConfig(linesInKittyConfig, newFontProperties)
+        finalConfig = self.joinConfigLinesTogether(updatedConfig)
+
+        self.fileWriter.saveChangesToKittyConfig(self.kitty.path, finalConfig)
+        return finalConfig
+
+    def getModifiedConfig(self, originalConfig, newFontProperties):
+        updatedFontSize = list(map(
+            lambda line: self.changeFontName(line, newFontProperties['FontName']),
+            originalConfig
+        ))
+        updatedConfigFontSize = list(map(
+            lambda line: self.changeFontSize(line, newFontProperties['FontSize']),
+            updatedFontSize
+        ))
+        return updatedConfigFontSize
+
+    def changeFontName(self, line, fontName):
+        if line.strip().startswith('font_family'):
+            return f"font_family {fontName}"
+        return line
+
+    def changeFontSize(self, line, fontSize):
+        if line.strip().startswith('font_size'):
+            return f"font_size {fontSize}"
+        return line
+
+    def joinConfigLinesTogether(self, updatedConfig):
+        return '\n'.join(updatedConfig)
+
+
+class ConfigFileWriter:
+
+    def saveChangesToKittyConfig(self, filePath, configData):
+        with open(filePath, "w") as config:
+            config.writelines(configData)
 
 
 class TerminalRestart:
