@@ -25,19 +25,27 @@ class FontChanger:
         linesInKittyConfig = self.kitty.data
         newFontProperties = {'FontName': newFontName, 'FontSize': newFontSize}
 
-        updatedConfig=self.getModifiedConfig(linesInKittyConfig, newFontProperties)
+        updatedConfig= ModifiedConfig(linesInKittyConfig, newFontProperties).get()
         finalConfig = self.joinConfigLinesTogether(updatedConfig)
 
         self.fileWriter.saveChangesToKittyConfig(self.kitty.path, finalConfig)
         return finalConfig
 
-    def getModifiedConfig(self, originalConfig, newFontProperties):
+    def joinConfigLinesTogether(self, updatedConfig):
+        return '\n'.join(updatedConfig)
+
+class ModifiedConfig:
+    def __init__(self, originalConfig: list[str], newFontProperties: dict):
+        self.originalConfig = originalConfig
+        self.newFontProperties = newFontProperties
+
+    def get(self):
         updatedFontSize = list(map(
-            lambda line: self.changeFontName(line, newFontProperties['FontName']),
-            originalConfig
+            lambda line: self.changeFontName(line, self.newFontProperties['FontName']),
+            self.originalConfig
         ))
         updatedConfigFontSize = list(map(
-            lambda line: self.changeFontSize(line, newFontProperties['FontSize']),
+            lambda line: self.changeFontSize(line, self.newFontProperties['FontSize']),
             updatedFontSize
         ))
         return updatedConfigFontSize
@@ -51,10 +59,6 @@ class FontChanger:
         if line.strip().startswith('font_size'):
             return f"font_size {fontSize}"
         return line
-
-    def joinConfigLinesTogether(self, updatedConfig):
-        return '\n'.join(updatedConfig)
-
 
 class ConfigFileWriter:
 
