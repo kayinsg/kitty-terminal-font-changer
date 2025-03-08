@@ -25,11 +25,14 @@ class FontChanger:
         linesInKittyConfig = self.kitty.data
         newFontProperties = {'FontName': newFontName, 'FontSize': newFontSize}
 
-        updatedConfig= ModifiedConfig(linesInKittyConfig, newFontProperties).get()
+        updatedConfig= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
         finalConfig = self.joinConfigLinesTogether(updatedConfig)
 
         self.fileWriter.saveChangesToKittyConfig(self.kitty.path, finalConfig)
         return finalConfig
+
+    def getModifiedConfig(self, originalConfig, newFontProperties):
+        return ModifiedConfig(originalConfig, newFontProperties).get()
 
     def joinConfigLinesTogether(self, updatedConfig):
         return '\n'.join(updatedConfig)
