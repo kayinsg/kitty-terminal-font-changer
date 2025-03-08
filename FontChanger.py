@@ -6,29 +6,18 @@ from os import kill
 
 
 class FontChanger:
-    def __init__(self, kitty):
+    def __init__(self, kitty: KittyTerminal):
         self.kitty = kitty
-        self._fileWriter = ConfigFileWriter()
-
-    @property
-    def fileWriter(self):
-        return self._fileWriter
-
-    @fileWriter.setter
-    def fileWriter(self, fileWriter):
-        if fileWriter:
-            self._fileWriter = fileWriter
-            return
-        self._fileWriter = ConfigFileWriter()
+        self.fileWriter = ConfigFileWriter()
 
     def change(self, newFontName, newFontSize):
         linesInKittyConfig = self.kitty.data
         newFontProperties = {'FontName': newFontName, 'FontSize': newFontSize}
-
         updatedConfig= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
         finalConfig = self.joinConfigLinesTogether(updatedConfig)
 
         self.fileWriter.saveChangesToKittyConfig(self.kitty.path, finalConfig)
+
         return finalConfig
 
     def getModifiedConfig(self, originalConfig, newFontProperties):
