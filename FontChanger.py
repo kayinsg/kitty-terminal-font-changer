@@ -8,7 +8,6 @@ from os import kill
 class FontChanger:
     def __init__(self, kitty: KittyTerminal):
         self.kitty = kitty
-        self.fileWriter = ConfigFileWriter()
 
     def change(self, newFontName, newFontSize):
         linesInKittyConfig = self.kitty.data
@@ -16,7 +15,7 @@ class FontChanger:
         updatedConfig= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
         finalConfig = self.joinConfigLinesTogether(updatedConfig)
 
-        self.fileWriter.saveChangesToKittyConfig(self.kitty.path, finalConfig)
+        self.kitty.saveChanges(finalConfig)
 
         return finalConfig
 
@@ -26,11 +25,6 @@ class FontChanger:
     def joinConfigLinesTogether(self, updatedConfig):
         return '\n'.join(updatedConfig)
 
-class ConfigFileWriter:
-
-    def saveChangesToKittyConfig(self, filePath, configData):
-        with open(filePath, "w") as config:
-            config.writelines(configData)
 
 class ModifiedConfig:
     def __init__(self, originalConfig: list[str], newFontProperties: dict):
