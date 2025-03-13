@@ -37,6 +37,12 @@ class FontChanger:
     def joinConfigLinesTogether(self, updatedConfig):
         return '\n'.join(updatedConfig)
 
+class ConfigFileWriter:
+
+    def saveChangesToKittyConfig(self, filePath, configData):
+        with open(filePath, "w") as config:
+            config.writelines(configData)
+
 class ModifiedConfig:
     def __init__(self, originalConfig: list[str], newFontProperties: dict):
         self.originalConfig = originalConfig
@@ -62,12 +68,6 @@ class ModifiedConfig:
         if line.strip().startswith('font_size'):
             return f"font_size {fontSize}"
         return line
-
-class ConfigFileWriter:
-
-    def saveChangesToKittyConfig(self, filePath, configData):
-        with open(filePath, "w") as config:
-            config.writelines(configData)
 
 
 class TerminalRestart:
