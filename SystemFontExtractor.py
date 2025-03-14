@@ -113,7 +113,11 @@ class FontFamily:
     def findFontAncestors(fonts) -> list[str]:
         extractAncestor = lambda name: name.split()[0]
         ancestors = map(extractAncestor, fonts)
-        return UniqueFonts(ancestors).get()
+        return FontFamily.filterForUniqueAncestors(ancestors)
+
+    @staticmethod
+    def filterForUniqueAncestors(duplicateAncestors):
+        return UniqueFonts(duplicateAncestors).get()
 
     def groupFontsWithParent(self) -> list[dict[str, str | list[str]]]:
         processFonts = lambda ancestor: self.categorizeFontsAccordingToAncestor(ancestor, self.primaryFontNames)
