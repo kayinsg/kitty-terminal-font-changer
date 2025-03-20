@@ -9,16 +9,16 @@ class FontChanger:
     def __init__(self, kitty: KittyTerminal):
         self.kitty = kitty
 
-    def change(self, newFontName, newFontSize):
-        linesInKittyConfig = self.kitty.data
-        newFontProperties = {'FontName': newFontName, 'FontSize': newFontSize}
-        updatedConfig= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
+    def change(self, newFontName: str, newFontSize: int) -> str:
+        linesInKittyConfig: list[str] = self.kitty.data
+        newFontProperties: dict[str, str | int] = {'FontName': newFontName, 'FontSize': newFontSize}
+        updatedConfig: str= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
 
         self.kitty.saveChanges(updatedConfig)
 
         return updatedConfig
 
-    def getModifiedConfig(self, originalConfig, newFontProperties):
+    def getModifiedConfig(self, originalConfig, newFontProperties) -> str:
         return ModifiedConfig(originalConfig, newFontProperties).get()
 
 
@@ -28,13 +28,13 @@ class ModifiedConfig:
         self.newFontProperties = newFontProperties
 
     @staticmethod
-    def joinConfigLinesTogether(updatedConfig):
+    def joinConfigLinesTogether(updatedConfig: list[str]) -> str:
         return '\n'.join(updatedConfig)
 
-    def get(self):
+    def get(self) -> str:
         return ModifiedConfig.joinConfigLinesTogether(self.updatedConfigData())
 
-    def updatedConfigData(self):
+    def updatedConfigData(self) -> list[str]:
         updatedFontSize = list(map(
             lambda line: self.changeFontName(line, self.newFontProperties['FontName']),
             self.originalConfig
@@ -45,12 +45,12 @@ class ModifiedConfig:
         ))
         return updatedConfigFontSize
 
-    def changeFontName(self, line, fontName):
+    def changeFontName(self, line, fontName) -> str:
         if line.strip().startswith('font_family'):
             return f"font_family {fontName}"
         return line
 
-    def changeFontSize(self, line, fontSize):
+    def changeFontSize(self, line, fontSize) -> str:
         if line.strip().startswith('font_size'):
             return f"font_size {fontSize}"
         return line
