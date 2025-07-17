@@ -5,55 +5,49 @@ import sys
 from os import kill
 
 
-class FontChanger:
-    def __init__(self, kitty: KittyTerminal):
-        self.kitty = kitty
+class ConfigStandardizer:
+    def __init__(self, fontConfig):
+        self.fontConfig = fontConfig
 
-    def change(self, newFontName: str, newFontSize: int) -> str:
-        linesInKittyConfig: list[str] = self.kitty.data
-        newFontProperties: dict[str, str | int] = {'FontName': newFontName, 'FontSize': newFontSize}
-        updatedConfig: str= self.getModifiedConfig(linesInKittyConfig, newFontProperties)
+    def convertInto(self, desiredDataType):
+        if desiredDataType == "list":
+            return self.transformConfigDataIntoLists()
+        else:
+            return self.rejoinConfigurationData
 
-        self.kitty.saveChanges(updatedConfig)
+    def transformConfigDataIntoLists(self):
+        return self.fontConfig.split('\n')
 
-        return updatedConfig
-
-    def getModifiedConfig(self, originalConfig, newFontProperties) -> str:
-        return ModifiedConfig(originalConfig, newFontProperties).get()
+    def rejoinConfigurationData(self, listOfChangedConfigurationLines):
+        return '\n'.join(listOfChangedConfigurationLines)
 
 
-class ModifiedConfig:
-    def __init__(self, originalConfig: list[str], newFontProperties: dict):
-        self.originalConfig = originalConfig
-        self.newFontProperties = newFontProperties
+class FontConfigurationModifier:
+    def __init__(self, configStandardizer):
+        self.configStandardizer = configStandardizer
+        self.newLines = []
 
-    @staticmethod
-    def joinConfigLinesTogether(updatedConfig: list[str]) -> str:
-        return '\n'.join(updatedConfig)
+    def changeFont(self, fontName, fontSize):
+        lines = self.configStandardizer.convertInto("list")
+        self.changeFontName(fontName, lines)
+        self.changeFontSize(fontSize, lines)
+        self.includeUnchangedConfigData(lines)
+        return self.configStandardizer.convertInto("string")(self.newLines)
 
-    def get(self) -> str:
-        return ModifiedConfig.joinConfigLinesTogether(self.updatedConfigData())
+    def changeFontName(self, fontName, lines):
+        for line in lines:
+            if line.startswith("font_family"):
+                self.newLines.append(f"font_family                  {fontName}")
 
-    def updatedConfigData(self) -> list[str]:
-        updatedFontSize = list(map(
-            lambda line: self.changeFontName(line, self.newFontProperties['FontName']),
-            self.originalConfig
-        ))
-        updatedConfigFontSize = list(map(
-            lambda line: self.changeFontSize(line, self.newFontProperties['FontSize']),
-            updatedFontSize
-        ))
-        return updatedConfigFontSize
+    def changeFontSize(self, fontSize, lines):
+        for line in lines:
+            if line.startswith("font_size"):
+                self.newLines.append(f"font_size                    {fontSize}")
 
-    def changeFontName(self, line, fontName) -> str:
-        if line.strip().startswith('font_family'):
-            return f"font_family {fontName}"
-        return line
-
-    def changeFontSize(self, line, fontSize) -> str:
-        if line.strip().startswith('font_size'):
-            return f"font_size {fontSize}"
-        return line
+    def includeUnchangedConfigData(self, lines):
+        for line in lines:
+            if not line.startswith("font_family") and not line.startswith("font_size"):
+                self.newLines.append(line)
 
 
 class TerminalRestart:

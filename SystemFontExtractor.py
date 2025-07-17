@@ -1,141 +1,136 @@
 import subprocess
-import re as regex
-from fontDataObjects import FontSelect
-from utils import UniqueFonts
+
+def main():
+    fontData = FontExtractorForFontAddresses().extract()
+    excludedFonts = ["Lato", "Noto", "System", "Bitstream", "Liberation"]
+    filteredFontData = FontFilter(fontData).excludeFontsSpecifiedByUser(excludedFonts)
+    sortedFontData = FontSorter(filteredFontData).sortFonts()
+    fontChildrenParser = FontChildrenParser(sortedFontData)
+    return FontBundler(fontChildrenParser).buildRelationships()
 
 
-class FontSelectorDetails:
-    def __init__(self, fontAdresses):
-        self.fontAdresses = fontAdresses
-
-    def get(self) -> list[FontSelect]:
-        fontFamilies = self.getFontFamilies()
-        return self.storeDataInFontSelect(self.ancestorGroupedWithShortestLengthDescendant(fontFamilies))
-
-    def getFontFamilies(self) -> list[dict[str, str | list[str]]]:
-        fontAddresses: list[str] = self.fontAdresses.get()
-        groupOfRelatedFontNames: list[str] = FontName(fontAddresses).getFontNames()
-        fontFamilies: list[dict[str, str | list[str]]] = FontFamily(groupOfRelatedFontNames).groupFontsWithParent()
-        return fontFamilies
-
-    def ancestorGroupedWithShortestLengthDescendant(self, fontFamilies: list[dict[str, str | list[str]]]) -> list[dict[str, str]]:
-        return list(map(ShortFontPair().getFontAncestorWithShortestLengthDescendant, fontFamilies))
-
-    def storeDataInFontSelect(self, fontContainer: list[dict[str, str]]) -> list[FontSelect]:
-        storeInFontSelect = lambda fontContainer: FontSelect(fontContainer['shortestFontName'], fontContainer['fontAncestor'])
-        return list(map(storeInFontSelect, fontContainer))
-
-
-class CustomFontAddress:
-
-    def get(self) -> list[str]:
-        listOfFontsAvailable = self.getAllFontAddresses()
-        return list(
-            filter(
-                self.customFontAddress,
-                listOfFontsAvailable
-            )
-        )
+class FontExtractorForFontAddresses:
+    def extract(self):
+        fontAddresses = self.getAllFontAddresses()
+        listOfFontAddresses = self.transformFontAddressesIntoLists(fontAddresses)
+        return list(map(self.extractFontNameFromAddress, listOfFontAddresses))
 
     def getAllFontAddresses(self):
-        showSystemFonts = subprocess.run(
-            ["fc-list"],
+        return subprocess.run(
+            ["fc-list", ":spacing=mono"],
             check=True,
             capture_output=True,
             text=True
-        )
+        ).stdout
 
-        return showSystemFonts.stdout.splitlines()
+    def transformFontAddressesIntoLists(self, fontAddresses):
+        return fontAddresses.split('\n')
 
-    def customFontAddress(self, line):
-        customFontFolder = regex.compile('.*monospace.*')
-        if customFontFolder.search(line):
-            return True
-        return False
-
-
-class FontName:
-    def __init__(self, fontAddresses):
-        self.fontAddresses = fontAddresses
-
-    def getFontNames(self):
-        relevantFunction = lambda fontAddresses: self.getFirstFontName(self.getFontGroup(fontAddresses))
-        uniqueFonts = UniqueFonts(list(map(relevantFunction, self.fontAddresses))).get()
-        return uniqueFonts
-
-    def getFontGroup(self, fontAddresses):
-        parts = fontAddresses.split(':')
-        if len(parts) > 1:
-            fontNames = parts[1].strip()
-            return fontNames
-
-    def getFirstFontName(self, groupOfRelatedFontNames):
-        return groupOfRelatedFontNames.split(',')[0].strip()
+    def extractFontNameFromAddress(self, fontAddress):
+        if fontAddress and ":" in fontAddress:
+            return fontAddress.split(':')[1].split(':')[0].strip()
 
 
-class ShortFontPair:
-
-    def get(self, fontFamily):
-        return self.getFontAncestorWithShortestLengthDescendant(fontFamily)
-
-    def getFontAncestorWithShortestLengthDescendant(self, fontFamily):
-        fontNames = list(map(self.extractFontName, fontFamily['Descendants']))
-        fontNameLengths = list(map(self.calculateFontNameLength, fontNames))
-        fontsMetadata = list(zip(fontNames, fontNameLengths))
-        shortestFontName = self.findShortestFontName(fontsMetadata)
-        return {
-            'fontAncestor': fontFamily['Ancestor'],
-            'shortestFontName': shortestFontName,
-        }
-
-    def extractFontName(self, descendant):
-        return descendant
-
-    def calculateFontNameLength(self, fontName):
-        return len(fontName)
-
-    def findShortestFontName(self, fontsMetadata):
-        fontSize = 1
-        fontNameLength = lambda fontDetails: fontDetails[fontSize]
-
-        return min(
-            fontsMetadata,
-            key=fontNameLength
-        )[0]
-
-
-class FontFamily:
-    def __init__(self, relatedGroupsOfFontNames: list[str]):
-        self.primaryFontNames: list[str] = relatedGroupsOfFontNames
-        self.ancestors: list[str] = FontFamily.findFontAncestors(self.primaryFontNames)
+class FontFilter:
+    def __init__(self, fontData):
+        self.fontData = fontData
 
     @staticmethod
-    def findFontAncestors(fonts) -> list[str]:
-        extractAncestor = lambda name: name.split()[0]
-        ancestors = map(extractAncestor, fonts)
-        return UniqueFonts(ancestors).get()
+    def removeEmptyEntriesFromFonts(fonts):
+        return list(filter(lambda font: font is not None, fonts))
 
-    def groupFontsWithParent(self) -> list[dict[str, str | list[str]]]:
-        processFonts = lambda ancestor: self.categorizeFontsAccordingToAncestor(ancestor, self.primaryFontNames)
-        return list(
-            map(
-                processFonts,
-                self.ancestors
-            )
-        )
+    def excludeFontsSpecifiedByUser(self, fontPatternsToIgnore):
+        fontData = self.removeEmptyEntriesFromFonts(self.fontData)
+        acceptedFonts = list(filter(
+            lambda font: self.determineIfFontShouldBeIgnored(font, fontPatternsToIgnore),
+            fontData
+        ))
+        deduplicatedFonts = self.removeDuplicates(acceptedFonts)
+        return self.removeEmptyEntriesFromFonts(deduplicatedFonts)
 
-    def categorizeFontsAccordingToAncestor(self, fontAncestor: str, listOfFonts: list[str]) -> dict[str, str | list[str]]:
-       return {
-           'Ancestor': fontAncestor,
-           'Descendants': self.getMatchingFontsRegardingAncestor(fontAncestor, listOfFonts),
-       }
+    def determineIfFontShouldBeIgnored(self, font, patterns):
+        return not any(map(lambda pattern: pattern in font, patterns))
 
-    def getMatchingFontsRegardingAncestor(self, fontAncestor: str, listOfFonts: list[str]) -> list[str]:
-        fontMatchesAncestor = lambda descendant: regex.search(fontAncestor, descendant) is not None
-        return list(
-            filter(
-                fontMatchesAncestor,
-                listOfFonts
-            )
-        )
+    def removeDuplicates(self, fonts):
+        listOfSeenFonts = []
+        for currentFont in fonts:
+            isFontAlreadySeen = currentFont in listOfSeenFonts
+            if isFontAlreadySeen == False:
+                listOfSeenFonts.append(currentFont)
+        return listOfSeenFonts
 
+
+class FontSorter:
+    def __init__(self, fontData):
+        self.fontData = fontData
+
+    def sortFonts(self):
+        preparedFonts = list(map(self.createHashTableWithOriginalFontsAndSortingKey, self.fontData))
+        tempSorted = self.sortOriginalListOfFontsAccordingToSortKey(preparedFonts)
+        return self.getOriginalListOfFontsInSortedOrder(tempSorted)
+
+    def createHashTableWithOriginalFontsAndSortingKey(self, font):
+        firstCommaPart = font.split(',')[0]
+        firstWord = firstCommaPart.split(' ')[0]
+        firstWordLower = firstWord.lower()
+        return {
+            'original': font,
+            'sortKey': firstWordLower
+        }
+
+    def sortOriginalListOfFontsAccordingToSortKey(self, preparedFonts):
+        tempSorted = sorted(preparedFonts, key=lambda x: x['original'])
+        tempSorted.sort(key=lambda x: x['sortKey'])
+        return tempSorted
+
+    def getOriginalListOfFontsInSortedOrder(self, fontsTable):
+        return list(map(lambda font: font['original'], fontsTable))
+
+
+class FontChildrenParser:
+    def __init__(self, listOfFonts):
+        self.listOfFonts = listOfFonts
+
+    def parse(self):
+        separatedFonts = self.separateElementsByCommas()
+        return list(map(self.parseSingleFontString, separatedFonts))
+
+    def separateElementsByCommas(self):
+        return list(map(lambda fontString: fontString.split(","), self.listOfFonts))
+
+    def parseSingleFontString(self, fontString):
+        primaryFont = fontString[0]
+        variantFonts = fontString[1:]
+        return (primaryFont, variantFonts)
+
+
+class FontBundler:
+    def __init__(self, fontChildrenParser):
+        self.fontChildrenParser = fontChildrenParser
+        self.families = {}
+
+    def buildRelationships(self):
+        parsedFonts = self.fontChildrenParser.parse()
+        list(map(self.updateSingleFamily, parsedFonts))
+        return self.finalizeFamilies()
+
+    def updateSingleFamily(self, entry):
+        familyName, variants = entry
+        self.createNewFamilyIfParentFontDoesNotExist(familyName)
+        self.families[familyName].update(variants)
+
+    def createNewFamilyIfParentFontDoesNotExist(self, familyName):
+        fontIsAlreadyRegistered = familyName in self.families
+        if fontIsAlreadyRegistered:
+            pass
+        else:
+            self.families[familyName] = set()
+
+    def finalizeFamilies(self):
+        extractFontFamilyAndChildren = lambda item: {
+            "Font Family": item[0],
+            "Font Children": sorted(list(item[1]))
+        }
+        return list(map(extractFontFamilyAndChildren, self.families.items()))
+
+main()
