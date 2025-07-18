@@ -1,3 +1,6 @@
+import sqlite3
+
+
 class Database:
     def __init__(self, conn):
         self.conn = conn
@@ -8,16 +11,16 @@ class Database:
         self.insertDataIntoDatabase(fontFamilies)
 
     def createTables(self):
-        DatabaseTableCreator(self.cursor).createTables()
+        DatabaseTable(self.cursor).createTables()
 
     def insertDataIntoDatabase(self, fontFamilies):
-        DatabaseDataInsert(self.conn, self.cursor).insertDataIntoTables(fontFamilies)
+        DatabaseInsert(self.conn, self.cursor).insertDataIntoTables(fontFamilies)
 
     def getFontFromDatabase(self, fontRequestedByUser):
-        return DatabaseRetriever(self.conn).getFont(fontRequestedByUser)
+        return UserFontFromDatabase(self.conn).getFont(fontRequestedByUser)
 
 
-class DatabaseTableCreator:
+class DatabaseTable:
     def __init__(self, cursor):
         self.cursor = cursor
 
@@ -45,7 +48,7 @@ class DatabaseTableCreator:
         list(map(lambda command: self.cursor.execute(command), sqlCommands))
 
 
-class DatabaseDataInsert:
+class DatabaseInsert:
     def __init__(self, conn, cursor):
         self.conn = conn
         self.cursor = cursor
@@ -74,7 +77,7 @@ class DatabaseDataInsert:
         self.conn.commit()
 
 
-class DatabaseRetriever:
+class UserFontFromDatabase:
     def __init__(self, conn):
         self.conn = conn
 

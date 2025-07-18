@@ -2,7 +2,7 @@ import unittest
 from colour_runner.runner import ColourTextTestRunner
 from fontDataObjects import KittyTerminal
 from SystemFontExtractorRewrite import FontExtractorForFontAddresses, FontFilter, FontSorter, FontBundler, FontChildrenParser
-from Database import Database, DatabaseRetriever
+from FontDatabase import Database, UserFontFromDatabase
 from FontChanger import ConfigStandardizer, FontConfigurationModifier
 import sqlite3
 
@@ -267,7 +267,7 @@ class DatabaseRelationshipTests(DatabaseTests):
             ('Intel One Mono', 'Intel One Mono Medium')
         ])
 
-class DatabaseDataInsertionTests(DatabaseTests):
+class DatabaseInsertionTests(DatabaseTests):
     def assertThatRowAndColumnDataIsCorrect(self, tableName, position):
         self.cursor.execute(f"SELECT name FROM {tableName}")
         actualValue = self.cursor.fetchall()[position['row']-1][position['column']-1]
@@ -313,7 +313,7 @@ class DatabaseRetrievalTests(DatabaseTests):
         # GIVEN the following preconditions corresponding to the system under test:
         self.createFontsTable(self.conn)
         fontRequestedFromUser = "ZedMono"
-        database = DatabaseRetriever(self.conn)
+        database = UserFontFromDatabase(self.conn)
         # WHEN the following module is executed:
         fontReceived = database.getFont(fontRequestedFromUser)
         # THEN the observable behavior should be verified as stated below:
