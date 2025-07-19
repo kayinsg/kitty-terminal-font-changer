@@ -29,22 +29,33 @@ class FontConfiguration:
     def changeFont(self, fontName, fontSize):
         configData = self.terminal.readDataFromConfigFile()
         configStandardizer = ConfigStandardizer(configData)
-        lines = configStandardizer.convertInto("list")
-        self.changeFontName(fontName, lines)
-        self.changeFontSize(fontSize, lines)
-        self.includeUnchangedConfigData(lines)
-        modifiedConfig = configStandardizer.convertInto("string")(self.newLines)
-        self.terminal.writeDataToConfigFile(modifiedConfig)
+        configDataInList = configStandardizer.convertInto("list")
+        modifiedConfig = ModifiedConfig(fontName, fontSize).change(configDataInList)
+        finalConfig = configStandardizer.convertInto("string")(modifiedConfig)
+        self.terminal.writeDataToConfigFile(finalConfig)
 
-    def changeFontName(self, fontName, lines):
+
+class ModifiedConfig:
+    def __init__(self, fontName, fontSize):
+        self.fontName = fontName
+        self.fontSize = fontSize
+        self.newLines = []
+
+    def change(self, configData):
+        self.changeFontName(configData)
+        self.changeFontSize(configData)
+        self.includeUnchangedConfigData(configData)
+        return self.newLines
+
+    def changeFontName(self, lines):
         for line in lines:
             if line.startswith("font_family"):
-                self.newLines.append(f"font_family                  {fontName}")
+                self.newLines.append(f"font_family                  {self.fontName}")
 
-    def changeFontSize(self, fontSize, lines):
+    def changeFontSize(self, lines):
         for line in lines:
             if line.startswith("font_size"):
-                self.newLines.append(f"font_size                    {fontSize}")
+                self.newLines.append(f"font_size                    {self.fontSize}")
 
     def includeUnchangedConfigData(self, lines):
         for line in lines:
