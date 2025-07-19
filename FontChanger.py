@@ -10,9 +10,10 @@ class FontConfiguration:
 
     def changeFont(self, fontName, fontSize):
         configData = self.terminal.readDataFromConfigFile()
-        configStandardizer = ConfigStandardizer(configData)
-        modifiedConfig = ModifiedConfig(configStandardizer).change(fontName, fontSize)
+        config = ConfigDataType(configData)
+        modifiedConfig = ModifiedConfig(config).change(fontName, fontSize)
         self.terminal.writeDataToConfigFile(modifiedConfig)
+
 
 class KittyTerminal:
     def __init__(self, configFilePath):
@@ -55,7 +56,7 @@ class ModifiedConfig:
                 self.newLines.append(line)
 
 
-class ConfigStandardizer:
+class ConfigDataType:
     def __init__(self, fontConfig):
         self.fontConfig = fontConfig
 
@@ -70,7 +71,6 @@ class ConfigStandardizer:
 
     def rejoinConfigurationData(self, listOfChangedConfigurationLines):
         return '\n'.join(listOfChangedConfigurationLines)
-
 
 
 class TerminalRestart:
