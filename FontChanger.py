@@ -11,10 +11,8 @@ class FontConfiguration:
     def changeFont(self, fontName, fontSize):
         configData = self.terminal.readDataFromConfigFile()
         configStandardizer = ConfigStandardizer(configData)
-        modifiedConfig = ModifiedConfig(fontName, fontSize).change(configStandardizer)
-        finalConfig = configStandardizer.convertInto("string")(modifiedConfig)
-        self.terminal.writeDataToConfigFile(finalConfig)
-
+        modifiedConfig = ModifiedConfig(configStandardizer).change(fontName, fontSize)
+        self.terminal.writeDataToConfigFile(modifiedConfig)
 
 class KittyTerminal:
     def __init__(self, configFilePath):
@@ -30,30 +28,29 @@ class KittyTerminal:
 
 
 class ModifiedConfig:
-    def __init__(self, fontName, fontSize):
-        self.fontName = fontName
-        self.fontSize = fontSize
+    def __init__(self, config):
+        self.config = config
         self.newLines = []
 
-    def change(self, config):
-        configData = config.convertInto("list")
-        self.changeFontName(configData)
-        self.changeFontSize(configData)
+    def change(self, fontName, fontSize):
+        configData = self.config.convertInto("list")
+        self.changeFontName(configData, fontName)
+        self.changeFontSize(configData, fontSize)
         self.includeUnchangedConfigData(configData)
-        return config.convertInto("string")(self.newLines)
+        return self.config.convertInto("string")(self.newLines)
 
-    def changeFontName(self, lines):
-        for line in lines:
+    def changeFontName(self,configData, fontName):
+        for line in configData:
             if line.startswith("font_family"):
-                self.newLines.append(f"font_family                  {self.fontName}")
+                self.newLines.append(f"font_family                  {fontName}")
 
-    def changeFontSize(self, lines):
-        for line in lines:
+    def changeFontSize(self, configData, fontSize):
+        for line in configData:
             if line.startswith("font_size"):
-                self.newLines.append(f"font_size                    {self.fontSize}")
+                self.newLines.append(f"font_size                    {fontSize}")
 
-    def includeUnchangedConfigData(self, lines):
-        for line in lines:
+    def includeUnchangedConfigData(self, configData):
+        for line in configData:
             if not line.startswith("font_family") and not line.startswith("font_size"):
                 self.newLines.append(line)
 
