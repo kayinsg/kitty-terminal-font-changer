@@ -1,8 +1,9 @@
 import unittest
 from colour_runner.runner import ColourTextTestRunner
+from FontDatabase import Database, UserFontFromDatabase
+from FontChanger import FontConfiguration, KittyTerminal
 from SystemFontExtractor import FontExtractorForFontAddresses, FontFilter, FontSorter, FontBundler, FontChildrenParser
 from FontDatabase import Database, UserFontFromDatabase
-from FontChanger import ConfigStandardizer, FontConfiguration, KittyTerminal
 import sqlite3
 
 class SystemFontDataExtractorTests(unittest.TestCase):

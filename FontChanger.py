@@ -3,24 +3,6 @@ import signal
 import sys
 import os
 
-
-class ConfigStandardizer:
-    def __init__(self, fontConfig):
-        self.fontConfig = fontConfig
-
-    def convertInto(self, desiredDataType):
-        if desiredDataType == "list":
-            return self.transformConfigDataIntoLists()
-        else:
-            return self.rejoinConfigurationData
-
-    def transformConfigDataIntoLists(self):
-        return self.fontConfig.split('\n')
-
-    def rejoinConfigurationData(self, listOfChangedConfigurationLines):
-        return '\n'.join(listOfChangedConfigurationLines)
-
-
 class FontConfiguration:
     def __init__(self, terminal):
         self.terminal = terminal
@@ -33,6 +15,19 @@ class FontConfiguration:
         modifiedConfig = ModifiedConfig(fontName, fontSize).change(configDataInList)
         finalConfig = configStandardizer.convertInto("string")(modifiedConfig)
         self.terminal.writeDataToConfigFile(finalConfig)
+
+
+class KittyTerminal:
+    def __init__(self, configFilePath):
+        self.configFilePath = configFilePath
+
+    def readDataFromConfigFile(self):
+        with open(self.configFilePath, 'r') as file:
+            return file.read()
+
+    def writeDataToConfigFile(self, changedFontConfig):
+        with open(self.configFilePath, 'w') as file:
+            file.write(changedFontConfig)
 
 
 class ModifiedConfig:
@@ -63,17 +58,22 @@ class ModifiedConfig:
                 self.newLines.append(line)
 
 
-class KittyTerminal:
-    def __init__(self, configFilePath):
-        self.configFilePath = configFilePath
+class ConfigStandardizer:
+    def __init__(self, fontConfig):
+        self.fontConfig = fontConfig
 
-    def readDataFromConfigFile(self):
-        with open(self.configFilePath, 'r') as file:
-            return file.read()
+    def convertInto(self, desiredDataType):
+        if desiredDataType == "list":
+            return self.transformConfigDataIntoLists()
+        else:
+            return self.rejoinConfigurationData
 
-    def writeDataToConfigFile(self, changedFontConfig):
-        with open(self.configFilePath, 'w') as file:
-            file.write(changedFontConfig)
+    def transformConfigDataIntoLists(self):
+        return self.fontConfig.split('\n')
+
+    def rejoinConfigurationData(self, listOfChangedConfigurationLines):
+        return '\n'.join(listOfChangedConfigurationLines)
+
 
 
 class TerminalRestart:
