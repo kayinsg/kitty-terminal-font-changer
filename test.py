@@ -325,40 +325,39 @@ class FontChangerTestsTests(unittest.TestCase):
 
     def testShouldChangeTerminalConfigurationGivenUserSelectedFontNameAndSize(self):
         class FakeKittyTerminal(KittyTerminal):
-            def __init__(self, path):
-                self.path = path
+            def __init__(self, configFilePath):
+                self.configFilePath = configFilePath
 
-            def applyFont(self):
-                pass
+            def readDataFromConfigFile(self):
+                return (
+                    "font_family                  Roboto Mono\n"
+                    "font_size                    12.5\n"
+                    "\n"
+                    "italic_font                  auto\n"
+                    "bold_italic_font             auto\n"
+                    "allow_remote_control         yes\n"
+                    "\n"
+                    "# #: Keyboard shortcuts\n"
+                    "# map ctrl+q close_tab\n"
+                    "# map ctrl+t new_tab\n"
+                    "# map ctrl+j previous_tab\n"
+                    "# map ctrl+k next_tab\n"
+                    "# map ctrl+shift+j move_tab_backward\n"
+                    "# map ctrl+shift+k move_tab_forward\n"
+                    "# map page_up scroll_page_up\n"
+                    "# map page_down scroll_page_down\n"
+                    "# map ctrl+f2 set_tab_title\n"
+                    "\n"
+                    "background_opacity 0.8\n"
+                    "\n"
+                    "map ctrl+shift+f2 unmap"
+                )
 
-            def readFontConfigFile(self):
-                return "fontN"
+            def writeDataToConfigFile(self, changedFontConfig):
+                if changedFontConfig:
+                    self.writeSuccessful = True
 
-        def getConfigData():
-            return (
-                "font_family                  Roboto Mono\n"
-                "font_size                    12.5\n"
-                "\n"
-                "italic_font                  auto\n"
-                "bold_italic_font             auto\n"
-                "allow_remote_control         yes\n"
-                "\n"
-                "# #: Keyboard shortcuts\n"
-                "# map ctrl+q close_tab\n"
-                "# map ctrl+t new_tab\n"
-                "# map ctrl+j previous_tab\n"
-                "# map ctrl+k next_tab\n"
-                "# map ctrl+shift+j move_tab_backward\n"
-                "# map ctrl+shift+k move_tab_forward\n"
-                "# map page_up scroll_page_up\n"
-                "# map page_down scroll_page_down\n"
-                "# map ctrl+f2 set_tab_title\n"
-                "\n"
-                "background_opacity 0.8\n"
-                "\n"
-                "map ctrl+shift+f2 unmap"
-            )
-            return configData
+
 
         def getExpectedConfigData():
             return (
@@ -387,44 +386,12 @@ class FontChangerTestsTests(unittest.TestCase):
         # GIVEN the following preconditions corresponding to the system under test:
         fontName = "JetBrainsMono"
         fontSize = "13.5"
-        fontConfig = getConfigData()
-        expected = getExpectedConfigData()
-        configStandardizer = ConfigStandardizer(fontConfig)
-        fontChanger = FontConfigurationModifier(configStandardizer)
+        kittyTerminal = FakeKittyTerminal("")
+        fontChanger = FontConfiguration(kittyTerminal)
         # WHEN the following module is executed:
-        changedFontConfig = fontChanger.changeFont(fontName, fontSize)
+        fontChanger.changeFont(fontName, fontSize)
         # THEN the observable behavior should be verified as stated below:
-        self.assertEqual(changedFontConfig, expected)
-
-
-
-
-    def testShouldWriteChangedDataToConfigFile(self):
-        # GIVEN the following preconditions corresponding to the system under test:
-        path = "~/.config/kitty/fontSettings"
-        fontConfigurationModifier= FontConfigurationModifier("")
-        terminal = KittyTerminal(path, fontConfigurationModifier)
-        # WHEN the following module is executed:
-        terminal.applyChangesToConfigFile()
-        # THEN the observable behavior should be verified as stated below:
-        self.assertTrue(terminal.configFileWasWritten)
-
-
-class FakeKittyTerminal(KittyTerminal):
-    def __init__(self, path, fontConfigurationModifier):
-        self.path = path
-        self.fontConfigurationModifier = fontConfigurationModifier
-
-    def applyChangesToConfigFile(self, fontName, fontSize):
-        configData = self.readDataFromConfigFile()
-        changedConfigData = config.fontConfigurationModifier.changeFont(fontName, fontSize)
-        self.writeDataToConfigFile(changedConfigData)
-
-    def readDataFromConfigFile(self):
-
-    def writeDataToConfigFile(self, changedConfigData):
-
-
+        self.assertTrue(kittyTerminal.writeSuccessful)
 
 if __name__ == '__main__':
     unittest.main(testRunner=ColourTextTestRunner(), verbosity=2)
