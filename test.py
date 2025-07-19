@@ -325,6 +325,31 @@ class DatabaseRetrievalTests(DatabaseTests):
 class FontChangerTestsTests(unittest.TestCase):
 
     def testShouldChangeTerminalConfigurationGivenUserSelectedFontNameAndSize(self):
+        def getModifiedFontConfig():
+            return (
+                "font_family                  JetBrainsMono\n"
+                "font_size                    13.5\n"
+                "\n"
+                "italic_font                  auto\n"
+                "bold_italic_font             auto\n"
+                "allow_remote_control         yes\n"
+                "\n"
+                "# #: Keyboard shortcuts\n"
+                "# map ctrl+q close_tab\n"
+                "# map ctrl+t new_tab\n"
+                "# map ctrl+j previous_tab\n"
+                "# map ctrl+k next_tab\n"
+                "# map ctrl+shift+j move_tab_backward\n"
+                "# map ctrl+shift+k move_tab_forward\n"
+                "# map page_up scroll_page_up\n"
+                "# map page_down scroll_page_down\n"
+                "# map ctrl+f2 set_tab_title\n"
+                "\n"
+                "background_opacity 0.8\n"
+                "\n"
+                "map ctrl+shift+f2 unmap"
+            )
+
         class FakeKittyTerminal(KittyTerminal):
             def __init__(self, configFilePath):
                 self.configFilePath = configFilePath
@@ -355,44 +380,22 @@ class FontChangerTestsTests(unittest.TestCase):
                 )
 
             def writeDataToConfigFile(self, changedFontConfig):
-                if changedFontConfig:
-                    self.writeSuccessful = True
+                modifiedConfig = getModifiedFontConfig()
+                if changedFontConfig == modifiedConfig:
+                    self.dataWrittenToFile = getModifiedFontConfig()
+                else:
+                    pass
 
-
-
-        def getExpectedConfigData():
-            return (
-                "font_family                  JetBrainsMono\n"
-                "font_size                    13.5\n"
-                "\n"
-                "italic_font                  auto\n"
-                "bold_italic_font             auto\n"
-                "allow_remote_control         yes\n"
-                "\n"
-                "# #: Keyboard shortcuts\n"
-                "# map ctrl+q close_tab\n"
-                "# map ctrl+t new_tab\n"
-                "# map ctrl+j previous_tab\n"
-                "# map ctrl+k next_tab\n"
-                "# map ctrl+shift+j move_tab_backward\n"
-                "# map ctrl+shift+k move_tab_forward\n"
-                "# map page_up scroll_page_up\n"
-                "# map page_down scroll_page_down\n"
-                "# map ctrl+f2 set_tab_title\n"
-                "\n"
-                "background_opacity 0.8\n"
-                "\n"
-                "map ctrl+shift+f2 unmap"
-            )
         # GIVEN the following preconditions corresponding to the system under test:
         fontName = "JetBrainsMono"
         fontSize = "13.5"
+        expectedResult = getModifiedFontConfig()
         kittyTerminal = FakeKittyTerminal("")
         fontChanger = FontConfiguration(kittyTerminal)
         # WHEN the following module is executed:
         fontChanger.changeFont(fontName, fontSize)
         # THEN the observable behavior should be verified as stated below:
-        self.assertTrue(kittyTerminal.writeSuccessful)
+        self.assertEqual(kittyTerminal.dataWrittenToFile, expectedResult)
 
 if __name__ == '__main__':
     unittest.main(testRunner=ColourTextTestRunner(), verbosity=2)
