@@ -11,8 +11,7 @@ class FontConfiguration:
     def changeFont(self, fontName, fontSize):
         configData = self.terminal.readDataFromConfigFile()
         configStandardizer = ConfigStandardizer(configData)
-        configDataInList = configStandardizer.convertInto("list")
-        modifiedConfig = ModifiedConfig(fontName, fontSize).change(configDataInList)
+        modifiedConfig = ModifiedConfig(fontName, fontSize).change(configStandardizer)
         finalConfig = configStandardizer.convertInto("string")(modifiedConfig)
         self.terminal.writeDataToConfigFile(finalConfig)
 
@@ -36,11 +35,12 @@ class ModifiedConfig:
         self.fontSize = fontSize
         self.newLines = []
 
-    def change(self, configData):
+    def change(self, config):
+        configData = config.convertInto("list")
         self.changeFontName(configData)
         self.changeFontSize(configData)
         self.includeUnchangedConfigData(configData)
-        return self.newLines
+        return config.convertInto("string")(self.newLines)
 
     def changeFontName(self, lines):
         for line in lines:
