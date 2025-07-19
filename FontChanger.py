@@ -1,8 +1,7 @@
-from fontDataObjects import KittyTerminal
 import subprocess
 import signal
 import sys
-from os import kill
+import os
 
 
 class ConfigStandardizer:
@@ -49,6 +48,18 @@ class FontConfigurationModifier:
             if not line.startswith("font_family") and not line.startswith("font_size"):
                 self.newLines.append(line)
 
+class KittyTerminal:
+    def __init__(self, configFilePath):
+        self.configFilePath = configFilePath
+
+    def readDataFromConfigFile(self):
+        with open(self.configFilePath, 'r') as file:
+            return file.read()
+
+    def writeDataToConfigFile(self, changedFontConfig):
+        with open(self.configFilePath, 'w') as file:
+            file.write(changedFontConfig)
+
 
 class TerminalRestart:
 
@@ -70,7 +81,7 @@ class TerminalRestart:
     def killKittyProcesses(self, runningKittyProcesses):
         for process in runningKittyProcesses:
             pid = int(process)
-            kill(pid, signal.SIGHUP)
+            os.kill(pid, signal.SIGHUP)
 
     def reopenKittyTerminal(self):
         subprocess.run("kitty &", shell=True)
