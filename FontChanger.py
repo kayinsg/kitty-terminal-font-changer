@@ -21,17 +21,20 @@ class ConfigStandardizer:
         return '\n'.join(listOfChangedConfigurationLines)
 
 
-class FontConfigurationModifier:
-    def __init__(self, configStandardizer):
-        self.configStandardizer = configStandardizer
+class FontConfiguration:
+    def __init__(self, terminal):
+        self.terminal = terminal
         self.newLines = []
 
     def changeFont(self, fontName, fontSize):
-        lines = self.configStandardizer.convertInto("list")
+        configData = self.terminal.readDataFromConfigFile()
+        configStandardizer = ConfigStandardizer(configData)
+        lines = configStandardizer.convertInto("list")
         self.changeFontName(fontName, lines)
         self.changeFontSize(fontSize, lines)
         self.includeUnchangedConfigData(lines)
-        return self.configStandardizer.convertInto("string")(self.newLines)
+        modifiedConfig = configStandardizer.convertInto("string")(self.newLines)
+        self.terminal.writeDataToConfigFile(modifiedConfig)
 
     def changeFontName(self, fontName, lines):
         for line in lines:
@@ -47,6 +50,7 @@ class FontConfigurationModifier:
         for line in lines:
             if not line.startswith("font_family") and not line.startswith("font_size"):
                 self.newLines.append(line)
+
 
 class KittyTerminal:
     def __init__(self, configFilePath):
